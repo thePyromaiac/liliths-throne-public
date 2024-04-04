@@ -5672,6 +5672,10 @@ public class Game implements XMLSaving {
 	public boolean isScalyHairEnabled() {
 		return Main.getProperties().hasValue(PropertyValue.scalyHairContent);
 	}
+
+	public boolean isLipLispEnabled() {
+		return Main.getProperties().hasValue(PropertyValue.lipLispContent);
+	}
 	
 	public boolean isPubicHairEnabled() {
 		return Main.getProperties().hasValue(PropertyValue.pubicHairContent);

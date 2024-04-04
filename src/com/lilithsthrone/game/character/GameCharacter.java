@@ -5028,8 +5028,7 @@ public abstract class GameCharacter implements XMLSaving {
 	
 	public boolean isAffectedBySleepingStatusEffect() {
 		return this.isPlayer()
-				|| (!this.isUnique()
-						&& (this.isSlave() && this.getOwner().isPlayer()) || Main.game.getPlayer().getFriendlyOccupants().contains(this.getId()));
+				|| (!this.isUnique() || this.isSlave() && this.getOwner().isPlayer()) || Main.game.getPlayer().getFriendlyOccupants().contains(this.getId());
 	}
 	
 	public boolean isSleepingAtHour(int hour) {
@@ -19284,7 +19283,7 @@ public abstract class GameCharacter implements XMLSaving {
 		if((this.getBodyMaterial()==BodyMaterial.SLIME || orificeIngestedThrough == SexAreaOrifice.VAGINA)
 				&& fluid.getType().getBaseType()==FluidTypeBase.CUM) {
 			if(charactersFluid!=null) {
-				fluidIngestionSB.append(rollForPregnancy(charactersFluid, millilitres, Main.game.isInSex()));
+				fluidIngestionSB.append(rollForPregnancy(charactersFluid, millilitres, Main.game.isInSex()));//TODO
 				
 			} else if(subspecies!=null) {
 				fluidIngestionSB.append(rollForPregnancy(subspecies, halfDemonSubspecies, millilitres, Main.game.isInSex()));
@@ -20753,6 +20752,20 @@ public abstract class GameCharacter implements XMLSaving {
 	public boolean isImpregnationPhysicallyPossible() {
 		return !this.isDoll() && !this.isElemental();
 	}
+
+	/**
+	 * @return false if this character has the MENOPAUSE StatusEffect, or if they have the BARREN perk and FERTILITY attribute is <= 0.
+	 */
+	public boolean isFertile() {
+		return !this.hasStatusEffect(StatusEffect.MENOPAUSE)
+				&& (this.getAttributeValue(Attribute.FERTILITY) > 0 || !this.hasTraitActivated(Perk.BARREN));
+	}
+	/**
+	 * @return false if this character has the FIRING_BLANKS perk and virilityAttribute attribute is <= 0.
+	 */
+	public boolean isVirile(AbstractAttribute virilityAttribute) {
+		return this.getAttributeValue(virilityAttribute) > 0 || !this.hasTraitActivated(Perk.FIRING_BLANKS);
+	}
 	
 	public String rollForPregnancy(GameCharacter partner, float cumQuantity, boolean directSexInsemination) {
 		return rollForPregnancy(partner, cumQuantity, directSexInsemination, Attribute.VIRILITY);
@@ -20798,8 +20811,8 @@ public abstract class GameCharacter implements XMLSaving {
 		
 		float pregnancyChance = 0.1f;
 		
-		boolean partnerVirile = partner.getAttributeValue(virilityAttribute) > 0 || !partner.hasPerkAnywhereInTree(Perk.FIRING_BLANKS);
-		boolean selfFertile = (getAttributeValue(Attribute.FERTILITY) > 0 || !hasPerkAnywhereInTree(Perk.BARREN)) && !this.hasStatusEffect(StatusEffect.MENOPAUSE);
+		boolean partnerVirile = partner.isVirile(virilityAttribute);
+		boolean selfFertile = this.isFertile();
 		
 		if(!partnerVirile || !selfFertile || !isAbleToBeImpregnated()) {
 			pregnancyChance = 0;
@@ -20913,7 +20926,7 @@ public abstract class GameCharacter implements XMLSaving {
 		
 		float pregnancyChance = 0.1f;
 		int baseVirility = 25;
-		boolean selfFertile = (getAttributeValue(Attribute.FERTILITY) > 0 || !hasPerkAnywhereInTree(Perk.BARREN)) && !this.hasStatusEffect(StatusEffect.MENOPAUSE);
+		boolean selfFertile = this.isFertile();
 		
 		if(selfFertile && isAbleToBeImpregnated()) {
 			pregnancyChance += (baseVirility/100f)/2f;

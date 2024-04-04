@@ -383,9 +383,8 @@ public class CharacterUtils {
 		
 		List<AbstractBodyCoveringType> typesToInfluence = new ArrayList<>();
 		// Skin & fur colours:
-		for(BodyPartInterface bp : body.getAllBodyParts()){
-			if(bp.getBodyCoveringType(body)!=null
-					&& !(bp instanceof Eye)) {
+		for(BodyPartInterface bp : body.getAllBodyParts()) {
+			if(bp.getBodyCoveringType(body)!=null && !(bp instanceof Eye)) { // Exclude eye as that's covered below
 				typesToInfluence.add(bp.getBodyCoveringType(body));
 			}
 		}

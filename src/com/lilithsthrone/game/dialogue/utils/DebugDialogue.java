@@ -967,11 +967,25 @@ public class DebugDialogue {
 						+ " F:"+(npc.getFather()!=null?npc.getFather().getName(true):"Deleted NPC")+"<br/>");
 			}
 			for(OffspringSeed os : Main.game.getOffspringNotSpawned(os -> true,true)) {
-				UtilText.nodeContentSB.append("Not yet"+(os.isBorn()?" met ":" born ")+"<span style='color:"+os.getFemininity().getColour().toWebHexString()+";'>"+os.getName()+" "+os.getSurname()+"</span>"
-						+ " ("+os.getSubspecies().getName(os.getBody())+" | "+os.getHalfDemonSubspecies().getName(os.getBody())+")"
-						+ " ("+os.getBody().getCovering(os.getBody().getTorsoType().getBodyCoveringType(os.getBody()), true).getPrimaryColour().getName()+")" // Primary covering colour
-						+ " M:"+(os.getMother()!=null?os.getMother().getName(true):"Deleted NPC")
-						+ " F:"+(os.getFather()!=null?os.getFather().getName(true):"Deleted NPC")+"<br/>");
+				if(!os.isBorn()) {
+					UtilText.nodeContentSB.append("[style.colourBad(Not yet born)] ");
+				} else {
+					UtilText.nodeContentSB.append("Not yet met ");
+				}
+				
+				UtilText.nodeContentSB.append("<span style='color:"+os.getFemininity().getColour().toWebHexString()+";'>"+os.getName()+" "+os.getSurname()+"</span>");
+				
+				UtilText.nodeContentSB.append(" ("+os.getSubspecies().getName(os.getBody()));
+				if(os.getSubspecies()==Subspecies.HALF_DEMON) {
+					UtilText.nodeContentSB.append("/"+os.getHalfDemonSubspecies().getName(os.getBody()));
+				}
+				UtilText.nodeContentSB.append(")");
+				
+				Colour primaryCoveringColour = os.getBody().getCovering(os.getBody().getTorsoType().getBodyCoveringType(os.getBody()), true).getPrimaryColour();
+				UtilText.nodeContentSB.append(" (<span style='color:"+primaryCoveringColour.toWebHexString()+";'>"+primaryCoveringColour.getName()+"</span>)"); // Primary covering colour
+				
+				UtilText.nodeContentSB.append(" M:"+(os.getMother()!=null?os.getMother().getName(true):"Deleted NPC"));
+				UtilText.nodeContentSB.append(" F:"+(os.getFather()!=null?os.getFather().getName(true):"Deleted NPC")+"<br/>");
 			}
 			if(activeOffspring!=null) {
 				for(AbstractFetish f : activeOffspring.getFetishes(true)) {

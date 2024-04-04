@@ -397,7 +397,7 @@ public class TooltipInventoryEventListener implements EventListener {
 									+ Util.stringsToStringList(clothingBlockingThisSlot, false) + ".");
 							
 						} else if (!renderingTattoos && block != null) {
-							setBlockedTooltipContent("<span style='color:" + PresetColour.GENERIC_MINOR_BAD.toWebHexString() + ";'>Restricted!</span>", UtilText.parse(equippedToCharacter, block.getDescription()));
+							setBlockedTooltipContent("<span style='color:" + PresetColour.GENERIC_BAD.toWebHexString() + ";'>Blocked!</span>", UtilText.parse(equippedToCharacter, block.getDescription()));
 							
 						} else {
 							boolean piercingBlocked=false;
@@ -1670,7 +1670,7 @@ public class TooltipInventoryEventListener implements EventListener {
 		if(block != null) {
 			sb.append(UtilText.parse(equippedToCharacter,
 					"<div class='title'>"
-						+ "<span style='color:" + PresetColour.GENERIC_MINOR_BAD.toWebHexString() + ";'>Restricted!</span>"
+						+ "<span style='color:" + PresetColour.GENERIC_BAD.toWebHexString() + ";'>Blocked!</span>"
 					+ "</div>"
 					+"<div class='description' style='height:72px; text-align:center;'>"
 						+ UtilText.parse(equippedToCharacter, block.getDescription())

@@ -600,7 +600,7 @@ public class MainController implements Initializable {
 //								if(npc.isUnique() && !npc.hasArtwork()
 ////										&& (npc.getWorldLocation().getWorldRegion()==WorldRegion.DOMINION)
 ////										&& npc.isFeminine()
-//										&& npc.getFaceType().getBodyCoveringType(npc).getCategory()!=BodyCoveringCategory.MAIN_SKIN
+//										&& npc.getFaceType().getBodyCoveringType(npc).getCategory()==BodyCoveringCategory.MAIN_SKIN
 ////										&& npc.isAbleToBeImpregnated()
 ////										&& npc.isFeminine()
 ////										&& (npc.getClass().getName().contains("dominion.") || npc.getClass().getName().contains("submission."))

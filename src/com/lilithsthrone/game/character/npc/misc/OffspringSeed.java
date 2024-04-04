@@ -137,7 +137,20 @@ public class OffspringSeed implements XMLSaving {
 	}
 	
 	public OffspringSeed(GameCharacter mother, GameCharacter father, AbstractSubspecies fatherSubspecies, AbstractSubspecies fatherHalfDemonSubspecies) {
-		
+		this(mother, father, father.getTrueSubspecies(), father.getHalfDemonSubspecies(), false);
+	}
+	
+	/**
+	 * The prioritiseFatherSubspecies variable should be set to true if the cum which is causing the impregnation is not coming directly from the father.
+	 * This is due to the possibility of the father having transformed after storing their cum, in which case the offspring would be generated as subspecies calculated from the father's current race instead of the stored cum race.
+	 * 
+	 * @param mother The mother of this OffspringSeed.
+	 * @param father The father, which can be null.
+	 * @param fatherSubspecies The subspecies of the father. Will only be used if the father is null or if prioritiseFatherSubspecies is true.
+	 * @param fatherHalfDemonSubspecies The half-demon subspecies of the father. Will only be used if the father is null or if prioritiseFatherSubspecies is true.
+	 * @param prioritiseFatherSubspecies If false, then a non-null father is used to calculate offspring subspecies, while if true, the father is ignored for the purposes of offspring subspecies calculations.
+	 */
+	public OffspringSeed(GameCharacter mother, GameCharacter father, AbstractSubspecies fatherSubspecies, AbstractSubspecies fatherHalfDemonSubspecies, boolean prioritiseFatherSubspecies) {
 		this.fromPlayer = (mother.isPlayer() || (father!=null && father.isPlayer()));
 		this.born = false;
 		
@@ -185,7 +198,7 @@ public class OffspringSeed implements XMLSaving {
 		Gender gender = Gender.getGenderFromUserPreferences(false, false);
 		
 		Body preGeneratedBody;
-		if(father!=null) {
+		if(father!=null && !prioritiseFatherSubspecies) {
 			preGeneratedBody = AbstractSubspecies.getPreGeneratedBody(template, gender, mother, father);
 		} else {
 			preGeneratedBody = AbstractSubspecies.getPreGeneratedBody(template, gender, mother.getTrueSubspecies(), mother.getHalfDemonSubspecies(), fatherSubspecies, fatherHalfDemonSubspecies);
@@ -193,7 +206,7 @@ public class OffspringSeed implements XMLSaving {
 		if(preGeneratedBody!=null) {
 			setBody(preGeneratedBody);
 		} else {
-			this.body = Main.game.getCharacterUtils().generateBody(template, gender, mother, father);
+			this.body = Main.game.getCharacterUtils().generateBody(template, gender, mother, prioritiseFatherSubspecies?null:father);
 		}
 
 		AbstractRace race;
