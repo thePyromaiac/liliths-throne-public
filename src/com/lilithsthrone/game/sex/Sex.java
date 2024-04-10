@@ -2928,7 +2928,7 @@ public class Sex {
 											?" if it weren't for the fact that [npc2.her] womb is already occupied, [npc2.she] might have got pregnant from this!"
 											:" [npc2.she] might get pregnant from this!")
 									+ "</i>"));
-							stringBuilderForAppendingDescriptions.append(character.rollForPregnancy(Main.sex.getCharacterPerformingAction(), 1, true, FertilisationType.TRIBBING, Attribute.FERTILITY));
+							stringBuilderForAppendingDescriptions.append(character.rollForPregnancy(Main.sex.getCharacterPerformingAction(), Main.sex.getCharacterPerformingAction().getBody(), 1, true, FertilisationType.TRIBBING, Attribute.FERTILITY));
 						}
 						stringBuilderForAppendingDescriptions.append("</p>");
 					}
@@ -3380,7 +3380,7 @@ public class Sex {
 	}
 
 	
-	private String calculateWetAreas(boolean onSexInit) {
+	public String calculateWetAreas(boolean onSexInit) {
 		StringBuilder wetSB = new StringBuilder();
 		
 		for(GameCharacter character : Main.sex.getAllParticipants()) {
@@ -3848,8 +3848,7 @@ public class Sex {
 										+ "</i></p>"
 										+ characterPenetrating.ingestFluid(
 												null,
-												fluid.getCumSubspecies(),
-												fluid.getCumHalfDemonSubspecies(),
+												fluid.getBody(),
 												fluid.getFluid(),
 												SexAreaOrifice.MOUTH,
 												fluid.getMillilitres()));

@@ -116,9 +116,12 @@ public class ItemEffectType {
 	};
 	
 	public static AbstractItemEffectType USED_CONDOM_DRINK = new AbstractItemEffectType(Util.newArrayListOfValues(
-			"Provides a slimy snack."),
+			"Provides a dose of stored cum."),
 			PresetColour.GENERIC_SEX) {
-		
+		@Override
+		public boolean isBreakOutOfInventory() {
+			return true;
+		}
 		@Override
 		public String itemEffectOverride(TFModifier primaryModifier, TFModifier secondaryModifier, TFPotency potency, int limit, GameCharacter user, GameCharacter target, ItemEffectTimer timer) {
 			return ""; // THIS EFFECT IS NOT USED, AS AbstractFilledCondom OVERRIDES THE USUAL AbstractItem's applyEffects() METHOD!!!

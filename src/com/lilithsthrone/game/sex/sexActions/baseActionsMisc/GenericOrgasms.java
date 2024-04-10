@@ -1328,7 +1328,7 @@ public class GenericOrgasms {
 //		}
 		
 		
-		if(cumTarget==OrgasmCumTarget.INSIDE || (cumTarget==OrgasmCumTarget.INSIDE_SWITCH_DOUBLE && isSecondaryCreampieTarget)
+		if((cumTarget==OrgasmCumTarget.INSIDE || (cumTarget==OrgasmCumTarget.INSIDE_SWITCH_DOUBLE && isSecondaryCreampieTarget))
 				&& characterTargeted!=null
 				&& contactingArea.isOrifice()
 				&& ((SexAreaOrifice)contactingArea).isInternalOrifice()

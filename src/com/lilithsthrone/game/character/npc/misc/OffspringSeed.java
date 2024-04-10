@@ -133,11 +133,11 @@ public class OffspringSeed implements XMLSaving {
 	}
 	
 	public OffspringSeed(GameCharacter mother, GameCharacter father) {
-		this(mother, father, father.getTrueSubspecies(), father.getHalfDemonSubspecies());
+		this(mother, father, father.getBody());
 	}
 	
-	public OffspringSeed(GameCharacter mother, GameCharacter father, AbstractSubspecies fatherSubspecies, AbstractSubspecies fatherHalfDemonSubspecies) {
-		this(mother, father, father.getTrueSubspecies(), father.getHalfDemonSubspecies(), false);
+	public OffspringSeed(GameCharacter mother, Body fatherBody) {
+		this(mother, null, fatherBody);
 	}
 	
 	/**
@@ -148,9 +148,8 @@ public class OffspringSeed implements XMLSaving {
 	 * @param father The father, which can be null.
 	 * @param fatherSubspecies The subspecies of the father. Will only be used if the father is null or if prioritiseFatherSubspecies is true.
 	 * @param fatherHalfDemonSubspecies The half-demon subspecies of the father. Will only be used if the father is null or if prioritiseFatherSubspecies is true.
-	 * @param prioritiseFatherSubspecies If false, then a non-null father is used to calculate offspring subspecies, while if true, the father is ignored for the purposes of offspring subspecies calculations.
 	 */
-	public OffspringSeed(GameCharacter mother, GameCharacter father, AbstractSubspecies fatherSubspecies, AbstractSubspecies fatherHalfDemonSubspecies, boolean prioritiseFatherSubspecies) {
+	public OffspringSeed(GameCharacter mother, GameCharacter father, Body fatherBody) {
 		this.fromPlayer = (mother.isPlayer() || (father!=null && father.isPlayer()));
 		this.born = false;
 		
@@ -194,19 +193,19 @@ public class OffspringSeed implements XMLSaving {
 		} else {
 			this.setSurname(""); // To make sure that surname is not null for the following check: this.surname.contains("martu")
 		}
-
-		Gender gender = Gender.getGenderFromUserPreferences(false, false);
+		
+		Gender gender = Gender.getGenderFromUserPreferences(Math.random()<mother.getRace().getChanceForMaleOffspring()?Femininity.MASCULINE:Femininity.FEMININE);
 		
 		Body preGeneratedBody;
-		if(father!=null && !prioritiseFatherSubspecies) {
-			preGeneratedBody = AbstractSubspecies.getPreGeneratedBody(template, gender, mother, father);
-		} else {
-			preGeneratedBody = AbstractSubspecies.getPreGeneratedBody(template, gender, mother.getTrueSubspecies(), mother.getHalfDemonSubspecies(), fatherSubspecies, fatherHalfDemonSubspecies);
-		}
+//		if(father!=null) {
+			preGeneratedBody = AbstractSubspecies.getPreGeneratedBody(template, gender, mother.getBody(), fatherBody);
+//		} else {
+//			preGeneratedBody = AbstractSubspecies.getPreGeneratedBody(template, gender, mother.getTrueSubspecies(), mother.getHalfDemonSubspecies(), fatherBody.getSubspecies(), fatherBody.getHalfDemonSubspecies());
+//		}
 		if(preGeneratedBody!=null) {
 			setBody(preGeneratedBody);
 		} else {
-			this.body = Main.game.getCharacterUtils().generateBody(template, gender, mother, prioritiseFatherSubspecies?null:father);
+			this.body = Main.game.getCharacterUtils().generateBody(template, gender, mother, father, fatherBody);
 		}
 
 		AbstractRace race;

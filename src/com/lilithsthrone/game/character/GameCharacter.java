@@ -3547,7 +3547,7 @@ public abstract class GameCharacter implements XMLSaving {
 		if(getBody()==null) {
 			return false;
 		}
-		return getRace()==Race.DOLL;
+		return getBody().isDoll();
 	}
 	
 	/**
@@ -19089,7 +19089,7 @@ public abstract class GameCharacter implements XMLSaving {
 		} catch (Exception e) {
 			fluidOwner = null;
 		}
-		return ingestFluid(fluidOwner, fluid.getCumSubspecies(), fluid.getCumHalfDemonSubspecies(), fluid.getFluid(), orificeIngestedThrough, fluid.getMillilitres());
+		return ingestFluid(fluidOwner, fluid.getBody(), fluid.getFluid(), orificeIngestedThrough, fluid.getMillilitres());
 	}
 
 	public String ingestFluid(FluidStored fluid, SexAreaOrifice orificeIngestedThrough, float millilitres) {
@@ -19099,14 +19099,25 @@ public abstract class GameCharacter implements XMLSaving {
 		} catch (Exception e) {
 			fluidOwner = null;
 		}
-		return ingestFluid(fluidOwner, fluid.getCumSubspecies(), fluid.getCumHalfDemonSubspecies(), fluid.getFluid(), orificeIngestedThrough, millilitres);
+		return ingestFluid(fluidOwner, fluid.getBody(), fluid.getFluid(), orificeIngestedThrough, millilitres);
 	}
 	
 	public String ingestFluid(GameCharacter charactersFluid, FluidInterface fluid, SexAreaOrifice orificeIngestedThrough, float millilitres) {
-		return ingestFluid(charactersFluid, charactersFluid.getSubspecies(), charactersFluid.getHalfDemonSubspecies(), fluid, orificeIngestedThrough, millilitres);
+		return ingestFluid(charactersFluid, charactersFluid.getBody(), fluid, orificeIngestedThrough, millilitres);
 	}
 
 	public String ingestFluid(GameCharacter charactersFluid, AbstractSubspecies subspecies, AbstractSubspecies halfDemonSubspecies, AbstractFluidType fluidType, SexAreaOrifice orificeIngestedThrough, float millilitres) {
+		return ingestFluid(
+				charactersFluid,
+				subspecies==Subspecies.HALF_DEMON
+					?Main.game.getCharacterUtils().generateHalfDemonBody(charactersFluid, charactersFluid==null?Gender.M_P_MALE:charactersFluid.getGender(), halfDemonSubspecies, false)
+					:Main.game.getCharacterUtils().generateBody(charactersFluid, charactersFluid==null?Gender.M_P_MALE:charactersFluid.getGender(), subspecies, charactersFluid==null?RaceStage.GREATER:charactersFluid.getRaceStage()),
+				fluidType,
+				orificeIngestedThrough,
+				millilitres);
+	}
+	
+	public String ingestFluid(GameCharacter charactersFluid, Body body, AbstractFluidType fluidType, SexAreaOrifice orificeIngestedThrough, float millilitres) {
 		FluidInterface fluid = null;
 		switch(fluidType.getBaseType()) {
 			case CUM:
@@ -19119,7 +19130,17 @@ public abstract class GameCharacter implements XMLSaving {
 				fluid = new FluidMilk(fluidType, false);
 				break;
 		}
-		return ingestFluid(charactersFluid, subspecies, halfDemonSubspecies, fluid, orificeIngestedThrough, millilitres);
+		return ingestFluid(charactersFluid, body, fluid, orificeIngestedThrough, millilitres);
+	}
+
+	public String ingestFluid(GameCharacter charactersFluid, AbstractSubspecies subspecies, AbstractSubspecies halfDemonSubspecies, FluidInterface fluid, SexAreaOrifice orificeIngestedThrough, float millilitres) {
+		return ingestFluid(charactersFluid, 
+				subspecies==Subspecies.HALF_DEMON
+					?Main.game.getCharacterUtils().generateHalfDemonBody(charactersFluid, charactersFluid==null?Gender.M_P_MALE:charactersFluid.getGender(), halfDemonSubspecies, false)
+					:Main.game.getCharacterUtils().generateBody(charactersFluid, charactersFluid==null?Gender.M_P_MALE:charactersFluid.getGender(), subspecies, charactersFluid==null?RaceStage.GREATER:charactersFluid.getRaceStage()),
+				fluid,
+				orificeIngestedThrough,
+				millilitres);
 	}
 	
 	/**
@@ -19128,10 +19149,10 @@ public abstract class GameCharacter implements XMLSaving {
 	 * @param addictive Is this fluid addictive or not.
 	 * @return A <b>formatted paragraph</b> description of addiction increasing/satisfied, or an empty String if no addictive effects occur.
 	 */
-	public String ingestFluid(GameCharacter charactersFluid, AbstractSubspecies subspecies, AbstractSubspecies halfDemonSubspecies, FluidInterface fluid, SexAreaOrifice orificeIngestedThrough, float millilitres) {
+	public String ingestFluid(GameCharacter charactersFluid, Body cumBody, FluidInterface fluid, SexAreaOrifice orificeIngestedThrough, float millilitres) {
 		StringBuilder fluidIngestionSB = new StringBuilder();
 		
-		List<FluidModifier> modifiers = fluid.getFluidModifiers();
+		Set<FluidModifier> modifiers = new HashSet<>(fluid.getFluidModifiers());
 		
 		boolean found = false;
 		
@@ -19144,7 +19165,7 @@ public abstract class GameCharacter implements XMLSaving {
 			if(charactersFluid!=null) {
 				newFluid = new FluidStored(charactersFluid, ((FluidCum) fluid), millilitres);
 			} else {
-				newFluid = new FluidStored("", subspecies, halfDemonSubspecies, ((FluidCum) fluid), millilitres);
+				newFluid = new FluidStored("", cumBody, ((FluidCum) fluid), millilitres);
 			}
 		} else if(fluid instanceof FluidMilk) {
 			newFluid = new FluidStored(charactersFluid==null?null:charactersFluid.getId(), ((FluidMilk)fluid), millilitres);
@@ -19171,8 +19192,7 @@ public abstract class GameCharacter implements XMLSaving {
 						orificeIngestedThrough,
 						new FluidStored(
 								charactersFluid==null?"":charactersFluid.getId(),
-								subspecies!=null?subspecies:charactersFluid.getSubspecies(),
-								charactersFluid==null?halfDemonSubspecies:charactersFluid.getHalfDemonSubspecies(),
+								cumBody,
 								(FluidCum)fluid, millilitres));
 			}
 			
@@ -19282,12 +19302,20 @@ public abstract class GameCharacter implements XMLSaving {
 		
 		if((this.getBodyMaterial()==BodyMaterial.SLIME || orificeIngestedThrough == SexAreaOrifice.VAGINA)
 				&& fluid.getType().getBaseType()==FluidTypeBase.CUM) {
-			if(charactersFluid!=null) {
-				fluidIngestionSB.append(rollForPregnancy(charactersFluid, millilitres, Main.game.isInSex()));//TODO
-				
-			} else if(subspecies!=null) {
-				fluidIngestionSB.append(rollForPregnancy(subspecies, halfDemonSubspecies, millilitres, Main.game.isInSex()));
-			}
+//			if(charactersFluid!=null) {
+//				System.out.println(UtilText.parse(this, charactersFluid, "1a: Rolling for [npc.name] ingesting [npc2.namePos] "+fluid.getName(charactersFluid)));
+//			} else {
+//				System.out.println(UtilText.parse(this, "1b: Rolling for [npc.name] ingesting "+fluid.getName(null)));
+//			}
+			fluidIngestionSB.append(this.rollForPregnancy(charactersFluid, cumBody, millilitres, newFluid.isCumVirile(), newFluid.getVirility(), Main.game.isInSex(), FertilisationType.NORMAL));
+			//GGameCharacter partner, Body partnerBody, float cumQuantity, boolean isPartnerVirile, float partnerVirility, boolean directSexInsemination, FertilisationType fertilisationType
+			
+//			if(charactersFluid!=null) {
+//				fluidIngestionSB.append(this.rollForPregnancy(charactersFluid, millilitres, Main.game.isInSex()));
+//				
+//			} else {
+//				fluidIngestionSB.append(this.rollForPregnancy(cumBody, millilitres, Main.game.isInSex()));
+//			}
 		}
 		
 		for(FluidModifier mod : modifiers) {
@@ -20729,9 +20757,16 @@ public abstract class GameCharacter implements XMLSaving {
 								//Util.logGetNpcByIdError("performImpregnationCheck()", fs.getCharactersFluidID());
 							}
 						}
-						if(partner!=null) {
-							rollForPregnancy(partner, fs.getMillilitres(), directSexImpregnation);
-						}
+//						if(partner!=null) {
+//							System.out.println(UtilText.parse(this, partner, "2a: Rolling for [npc.name] impregnated by [npc2.namePos] "+fs.getFluid().getName(partner)));
+//						} else {
+//							System.out.println(UtilText.parse(this, "2b: Rolling for [npc.name] impregnated by "+fs.getFluid().getName(null)));
+//						}
+						this.rollForPregnancy(partner, fs.getBody(), fs.getMillilitres(), fs.isCumVirile(), fs.getVirility(), directSexImpregnation, FertilisationType.NORMAL);
+						
+//						if(partner!=null) {
+//							this.rollForPregnancy(partner, fs.getMillilitres(), directSexImpregnation);
+//						}
 					}
 				}
 			}
@@ -20767,22 +20802,270 @@ public abstract class GameCharacter implements XMLSaving {
 		return this.getAttributeValue(virilityAttribute) > 0 || !this.hasTraitActivated(Perk.FIRING_BLANKS);
 	}
 	
-	public String rollForPregnancy(GameCharacter partner, float cumQuantity, boolean directSexInsemination) {
-		return rollForPregnancy(partner, cumQuantity, directSexInsemination, Attribute.VIRILITY);
-	}
+//	public String rollForPregnancy(GameCharacter partner, float cumQuantity, boolean directSexInsemination) {
+//		return rollForPregnancy(partner, cumQuantity, directSexInsemination, Attribute.VIRILITY);
+//	}
+//
+//	public String rollForPregnancy(GameCharacter partner, float cumQuantity, boolean directSexInsemination, AbstractAttribute virilityAttribute) {
+//		return rollForPregnancy(partner, cumQuantity, directSexInsemination, FertilisationType.NORMAL, Attribute.VIRILITY);
+//	}
+//	
+//	public String rollForPregnancy(GameCharacter partner, float cumQuantity, boolean directSexInsemination, FertilisationType fertilisationType, AbstractAttribute virilityAttribute) {
+//		// Elemental handling:
+//		if(this.isElemental()) {
+//			return PregnancyDescriptor.NO_CHANCE.getDescriptor(this, partner, directSexInsemination)
+//					+"<p style='text-align:center;'>[style.italicsMinorBad(Elementals cannot get pregnant!)]"
+//					+ "</p>";
+//		}
+//		if(partner.isElemental()) {
+//			return PregnancyDescriptor.NO_CHANCE.getDescriptor(this, partner, directSexInsemination)
+//					+"<p style='text-align:center;'>"
+//						+ "[style.italicsMinorBad(Elementals cannot impregnate anyone!)]"
+//					+ "</p>";
+//		}
+//		
+//		// Doll handling:
+//		if(this.isDoll()) {
+//			return PregnancyDescriptor.NO_CHANCE.getDescriptor(this, partner, directSexInsemination)
+//					+"<p style='text-align:center;'>[style.italicsMinorBad(Dolls cannot get pregnant!)]"
+//					+ "</p>";
+//		}
+//		if(partner.isDoll()) {
+//			return PregnancyDescriptor.NO_CHANCE.getDescriptor(this, partner, directSexInsemination)
+//					+"<p style='text-align:center;'>"
+//						+ "[style.italicsMinorBad(Dolls cannot impregnate anyone!)]"
+//					+ "</p>";
+//		}
+//		
+//		if(isVisiblyPregnant()) {
+//			return PregnancyDescriptor.ALREADY_PREGNANT.getDescriptor(this, partner, directSexInsemination);
+//		}
+//		if(this.getIncubationLitter(SexAreaOrifice.VAGINA)!=null) {
+//			return PregnancyDescriptor.ALREADY_PREGNANT_EGGS.getDescriptor(this, partner, directSexInsemination);
+//		}
+//		
+//		float pregnancyChance = 0.1f;
+//		
+//		boolean partnerVirile = partner.isVirile(virilityAttribute);
+//		boolean selfFertile = this.isFertile();
+//		
+//		if(!partnerVirile || !selfFertile || !isAbleToBeImpregnated()) {
+//			pregnancyChance = 0;
+//			
+//		} else if(isAbleToBeImpregnated()) {
+//			pregnancyChance += (partner.getAttributeValue(virilityAttribute)/100f)/2f;
+//			pregnancyChance += (getAttributeValue(Attribute.FERTILITY)/100f)/2f;
+//			pregnancyChance = Math.max(0, Math.min(pregnancyChance, 1));
+//		}
+//		if(guaranteePregnancyOnNextRoll) {
+//			pregnancyChance = 1;
+//			guaranteePregnancyOnNextRoll = false;
+//		}
+//		
+//		PregnancyPossibility pregPoss = new PregnancyPossibility(this.getId(), partner.getId(), pregnancyChance);
+//		
+//		this.addPotentialPartnerAsMother(pregPoss);
+//		partner.addPotentialPartnerAsFather(pregPoss);
+//		
+//		String pregnancyDescription = PregnancyDescriptor.getPregnancyDescriptorBasedOnProbability(pregnancyChance).getDescriptor(this, partner, directSexInsemination);
+//		
+//		// Now roll for pregnancy:
+//		if (!isPregnant()) {
+//			if (!hasStatusEffect(StatusEffect.PREGNANT_0)) {
+//				addStatusEffect(StatusEffect.PREGNANT_0, (60 * 60) * (4 + Util.random.nextInt(5)));
+//			}
+//			if (pregnancyChance>0 && Math.random() <= pregnancyChance) {
+//				AbstractRace litterSizeBasedOn = null;
+//				
+//				if (this.getBodyMaterial() == BodyMaterial.SLIME) {
+//					litterSizeBasedOn = Race.SLIME;
+//				} else {
+//					AbstractVaginaType vaginaType = getVaginaType();
+//					if(vaginaType.getRace()==Race.HUMAN) {
+//						litterSizeBasedOn = Optional.ofNullable(partner.getPenisType().getRace()).orElseGet(partner::getRace);
+//					} else {
+//						litterSizeBasedOn = Optional.ofNullable(vaginaType.getRace()).orElseGet(this::getRace);
+//					}
+//				}
+//				
+//				int minimumNumberOfChildren = litterSizeBasedOn.getNumberOfOffspringLow();
+//				int maximumNumberOfChildren = litterSizeBasedOn.getNumberOfOffspringHigh();
+//				
+//
+//				if(this.hasTraitActivated(Perk.FETISH_BROODMOTHER)) {
+//					maximumNumberOfChildren *= 2;
+//				}
+//				if(partner.hasTraitActivated(Perk.FETISH_SEEDER)) {
+//					maximumNumberOfChildren *= 2;
+//				}
+//				
+//				int numberOfChildren = minimumNumberOfChildren + Util.random.nextInt((maximumNumberOfChildren-minimumNumberOfChildren)+1);
+//				
+//				if(this.hasStatusEffect(StatusEffect.BROODMOTHER_PILL)) {
+//					numberOfChildren *= 2;
+//				}
+//				if(partner.hasStatusEffect(StatusEffect.BROODMOTHER_PILL)) {
+//					numberOfChildren *= 2;
+//				}
+//				
+//				List<OffspringSeed> offspring = new ArrayList<>(numberOfChildren);
+//				for (int i = 0; i < numberOfChildren; i++) { // Add children here:
+//					OffspringSeed os = new OffspringSeed(this, partner);
+//					offspring.add(os);
+//					try {
+//						Main.game.addOffspringSeed(os, false);
+//					} catch (Exception e) {
+//						e.printStackTrace();
+//					}
+//				}
+//				
+//				pregnantLitter = new Litter(Main.game.getDateNow(), Main.game.getDateNow(), this, partner, fertilisationType, offspring);
+//				this.resetAllPregnancyReactions();
+//			}
+//		}
+//		
+//		return pregnancyDescription;
+//	}
 
-	public String rollForPregnancy(GameCharacter partner, float cumQuantity, boolean directSexInsemination, AbstractAttribute virilityAttribute) {
-		return rollForPregnancy(partner, cumQuantity, directSexInsemination, FertilisationType.NORMAL, Attribute.VIRILITY);
+//	/**
+//	 * A variation for the pregnancy check when the owner of the cum is null.
+//	 * @param partnerSubspecies The subspecies of the cum owner (if they were to exist).
+//	 * @param partnerSubspecies The half-demon subspecies of the cum owner (if they were to exist).
+//	 * @param cumQuantity How much cum is in this character's orifice (usually the vagina).
+//	 * @param directSexInsemination true if this method is calculated from someone directly cumming inside this character, as opposed to ingesting cum from a container.
+//	 */
+//	public String rollForPregnancy(AbstractSubspecies partnerSubspecies, AbstractSubspecies partnerHalfDemonSubspecies, float cumQuantity, boolean directSexInsemination) {
+//		return rollForPregnancy(partnerSubspecies, partnerHalfDemonSubspecies, cumQuantity, directSexInsemination, FertilisationType.NORMAL);
+//	}
+	
+//	public String rollForPregnancy(Body partnerBody, float cumQuantity, boolean directSexInsemination) {
+//		return rollForPregnancy(partnerBody, cumQuantity, directSexInsemination, FertilisationType.NORMAL);
+//	}
+	
+	/**
+	 * A variation for the pregnancy check when the owner of the cum is null.
+	 * @param partnerSubspecies The subspecies of the cum owner (if they were to exist).
+	 * @param partnerHalfDemonSubspecies The half-demon subspecies of the cum owner (if they were to exist).
+	 * @param cumQuantity How much cum is in this character's orifice (usually the vagina).
+	 * @param directSexInsemination true if this method is calculated from someone directly cumming inside this character, as opposed to ingesting cum from a container.
+	 * @param fertilisationType The type of fertilisation which is occurring (either NORMAL from cum or TRIBBING from Amazon's Secret effect).
+	 */
+	public String rollForPregnancy(AbstractSubspecies partnerSubspecies, AbstractSubspecies partnerHalfDemonSubspecies, float cumQuantity, boolean directSexInsemination, FertilisationType fertilisationType) {
+		return rollForPregnancy(
+				partnerSubspecies==Subspecies.HALF_DEMON
+					?Main.game.getCharacterUtils().generateHalfDemonBody(null, Gender.M_P_MALE, partnerHalfDemonSubspecies, false)
+					:Main.game.getCharacterUtils().generateBody(null, Gender.M_P_MALE, partnerSubspecies, RaceStage.GREATER),
+				cumQuantity,
+				directSexInsemination,
+				fertilisationType);
 	}
 	
-	public String rollForPregnancy(GameCharacter partner, float cumQuantity, boolean directSexInsemination, FertilisationType fertilisationType, AbstractAttribute virilityAttribute) {
+//	public String rollForPregnancy(Body partnerBody, float cumQuantity, boolean directSexInsemination, FertilisationType fertilisationType) {
+//		if(partnerBody.getRace()==Race.ELEMENTAL) {
+//			return PregnancyDescriptor.NO_CHANCE.getDescriptor(this, null, directSexInsemination)
+//					+"<p style='text-align:center;'>[style.italicsMinorBad(Elementals cannot impregnate anyone!)]<br/>[style.italicsDisabled(I will add support for impregnating/being impregnated by elementals later on!)]</p>";
+//		}
+//		
+//		if(isVisiblyPregnant()) {
+//			return PregnancyDescriptor.ALREADY_PREGNANT.getDescriptor(this, null, directSexInsemination);
+//		}
+//		if(this.getIncubationLitter(SexAreaOrifice.VAGINA)!=null) {
+//			return PregnancyDescriptor.ALREADY_PREGNANT_EGGS.getDescriptor(this, null, directSexInsemination);
+//		}
+//		
+//		float pregnancyChance = 0.1f;
+//		int baseVirility = 25;
+//		boolean selfFertile = this.isFertile();
+//		
+//		if(selfFertile && isAbleToBeImpregnated()) {
+//			pregnancyChance += (baseVirility/100f)/2f;
+//			pregnancyChance += (getAttributeValue(Attribute.FERTILITY)/100f)/2f;
+//			pregnancyChance = Math.max(0, Math.min(pregnancyChance, 1));
+//		} else {
+//			pregnancyChance = 0;
+//		}
+//		if(guaranteePregnancyOnNextRoll) {
+//			pregnancyChance = 1;
+//			guaranteePregnancyOnNextRoll = false;
+//		}
+//		
+//		String partnerId = Subspecies.getIdFromSubspecies(partnerBody.getSubspecies()) + Main.game.getSecondsPassed(); // This should be fine as this method is never used in sex? :s
+//		PregnancyPossibility pregPoss = new PregnancyPossibility(this.getId(), partnerId, pregnancyChance);
+//		
+//		this.addPotentialPartnerAsMother(pregPoss);
+//		
+//		String pregnancyDescription = PregnancyDescriptor.getPregnancyDescriptorBasedOnProbability(pregnancyChance).getDescriptor(this, null, directSexInsemination);
+//		
+//		// Now roll for pregnancy:
+//		if (!isPregnant()) {
+//			if (!hasStatusEffect(StatusEffect.PREGNANT_0)) {
+//				addStatusEffect(StatusEffect.PREGNANT_0, (60 * 60) * (4 + Util.random.nextInt(5)));
+//			}
+//			if (Math.random() <= pregnancyChance) {
+//				AbstractRace litterSizeBasedOn = null;
+//				
+//				if (this.getBodyMaterial() == BodyMaterial.SLIME) {
+//					litterSizeBasedOn = Race.SLIME;
+//				} else {
+//					AbstractVaginaType vaginaType = getVaginaType();
+//					if (vaginaType.getRace()==Race.HUMAN) {
+//						litterSizeBasedOn = partnerBody.getRace();
+//					} else {
+//						litterSizeBasedOn = Optional.ofNullable(vaginaType.getRace()).orElseGet(this::getRace);
+//					}
+//				}
+//				
+//				int minimumNumberOfChildren = litterSizeBasedOn.getNumberOfOffspringLow();
+//				int maximumNumberOfChildren = litterSizeBasedOn.getNumberOfOffspringHigh();
+//				
+//				if (hasTraitActivated(Perk.FETISH_BROODMOTHER)) {
+//					maximumNumberOfChildren *= 2;
+//				}
+//				
+//				int numberOfChildren = minimumNumberOfChildren + Util.random.nextInt((maximumNumberOfChildren-minimumNumberOfChildren)+1);
+//				
+//				List<OffspringSeed> offspring = new ArrayList<>(numberOfChildren);
+//				for (int i = 0; i < numberOfChildren; i++) { // Add children here:
+//					OffspringSeed os = new OffspringSeed(this, partnerBody);
+//					offspring.add(os);
+//					try {
+//						Main.game.addOffspringSeed(os, false);
+//					} catch (Exception e) {
+//						e.printStackTrace();
+//					}
+//				}
+//				
+//				pregnantLitter = new Litter(Main.game.getDateNow(), Main.game.getDateNow(), this, null, fertilisationType, offspring);
+//				pregnantLitter.setFatherRace(partnerBody.getSubspecies());
+//				this.resetAllPregnancyReactions();
+//			}
+//		}
+//		
+//		return pregnancyDescription;
+//	}
+
+	
+	//TODO new methods:
+	// For null partner
+	public String rollForPregnancy(Body partnerBody, float cumQuantity, boolean directSexInsemination, FertilisationType fertilisationType) {
+		return rollForPregnancy(null, partnerBody, cumQuantity, true, 25, directSexInsemination, fertilisationType);
+	}
+	
+	public String rollForPregnancy(GameCharacter partner, Body partnerBody, float cumQuantity, boolean directSexInsemination, FertilisationType fertilisationType, AbstractAttribute partnerVirilityAttribute) {
+		if(partner==null) {
+			return rollForPregnancy(partnerBody, cumQuantity, directSexInsemination, fertilisationType);
+		}
+		return rollForPregnancy(partner, partnerBody, cumQuantity, partner.isVirile(partnerVirilityAttribute), partner.getAttributeValue(partnerVirilityAttribute), directSexInsemination, fertilisationType);
+	}
+
+	public String rollForPregnancy(GameCharacter partner, Body partnerBody, float cumQuantity, boolean isPartnerVirile, float partnerVirility, boolean directSexInsemination, FertilisationType fertilisationType) {
 		// Elemental handling:
 		if(this.isElemental()) {
 			return PregnancyDescriptor.NO_CHANCE.getDescriptor(this, partner, directSexInsemination)
 					+"<p style='text-align:center;'>[style.italicsMinorBad(Elementals cannot get pregnant!)]"
 					+ "</p>";
 		}
-		if(partner.isElemental()) {
+		if(partnerBody.getRace()==Race.ELEMENTAL) {
 			return PregnancyDescriptor.NO_CHANCE.getDescriptor(this, partner, directSexInsemination)
 					+"<p style='text-align:center;'>"
 						+ "[style.italicsMinorBad(Elementals cannot impregnate anyone!)]"
@@ -20795,14 +21078,14 @@ public abstract class GameCharacter implements XMLSaving {
 					+"<p style='text-align:center;'>[style.italicsMinorBad(Dolls cannot get pregnant!)]"
 					+ "</p>";
 		}
-		if(partner.isDoll()) {
+		if(partnerBody.isDoll()) {
 			return PregnancyDescriptor.NO_CHANCE.getDescriptor(this, partner, directSexInsemination)
 					+"<p style='text-align:center;'>"
 						+ "[style.italicsMinorBad(Dolls cannot impregnate anyone!)]"
 					+ "</p>";
 		}
 		
-		if(isVisiblyPregnant()) {
+		if(this.isVisiblyPregnant()) {
 			return PregnancyDescriptor.ALREADY_PREGNANT.getDescriptor(this, partner, directSexInsemination);
 		}
 		if(this.getIncubationLitter(SexAreaOrifice.VAGINA)!=null) {
@@ -20811,33 +21094,40 @@ public abstract class GameCharacter implements XMLSaving {
 		
 		float pregnancyChance = 0.1f;
 		
-		boolean partnerVirile = partner.isVirile(virilityAttribute);
 		boolean selfFertile = this.isFertile();
 		
-		if(!partnerVirile || !selfFertile || !isAbleToBeImpregnated()) {
+		if(!isPartnerVirile || !selfFertile || !this.isAbleToBeImpregnated()) {
 			pregnancyChance = 0;
 			
-		} else if(isAbleToBeImpregnated()) {
-			pregnancyChance += (partner.getAttributeValue(virilityAttribute)/100f)/2f;
-			pregnancyChance += (getAttributeValue(Attribute.FERTILITY)/100f)/2f;
+		} else if(this.isAbleToBeImpregnated()) {
+			pregnancyChance += (partnerVirility/100f)/2f;
+			pregnancyChance += (this.getAttributeValue(Attribute.FERTILITY)/100f)/2f;
 			pregnancyChance = Math.max(0, Math.min(pregnancyChance, 1));
 		}
 		if(guaranteePregnancyOnNextRoll) {
 			pregnancyChance = 1;
 			guaranteePregnancyOnNextRoll = false;
 		}
-		
-		PregnancyPossibility pregPoss = new PregnancyPossibility(this.getId(), partner.getId(), pregnancyChance);
+
+		String partnerId;
+		if(partner!=null) {
+			partnerId = partner.getId();
+		} else {
+			partnerId = Subspecies.getIdFromSubspecies(partnerBody.getSubspecies()) + Main.game.getSecondsPassed(); // This should be fine as this method is never used in sex? :s
+		}
+		PregnancyPossibility pregPoss = new PregnancyPossibility(this.getId(), partnerId, pregnancyChance);
 		
 		this.addPotentialPartnerAsMother(pregPoss);
-		partner.addPotentialPartnerAsFather(pregPoss);
+		if(partner!=null) {
+			partner.addPotentialPartnerAsFather(pregPoss);
+		}
 		
 		String pregnancyDescription = PregnancyDescriptor.getPregnancyDescriptorBasedOnProbability(pregnancyChance).getDescriptor(this, partner, directSexInsemination);
 		
 		// Now roll for pregnancy:
-		if (!isPregnant()) {
-			if (!hasStatusEffect(StatusEffect.PREGNANT_0)) {
-				addStatusEffect(StatusEffect.PREGNANT_0, (60 * 60) * (4 + Util.random.nextInt(5)));
+		if (!this.isPregnant()) {
+			if (!this.hasStatusEffect(StatusEffect.PREGNANT_0)) {
+				this.addStatusEffect(StatusEffect.PREGNANT_0, (60 * 60) * (4 + Util.random.nextInt(5)));
 			}
 			if (pregnancyChance>0 && Math.random() <= pregnancyChance) {
 				AbstractRace litterSizeBasedOn = null;
@@ -20845,9 +21135,9 @@ public abstract class GameCharacter implements XMLSaving {
 				if (this.getBodyMaterial() == BodyMaterial.SLIME) {
 					litterSizeBasedOn = Race.SLIME;
 				} else {
-					AbstractVaginaType vaginaType = getVaginaType();
+					AbstractVaginaType vaginaType = this.getVaginaType();
 					if(vaginaType.getRace()==Race.HUMAN) {
-						litterSizeBasedOn = Optional.ofNullable(partner.getPenisType().getRace()).orElseGet(partner::getRace);
+						litterSizeBasedOn = Optional.ofNullable(partnerBody.getPenisType().getRace()).orElseGet(partnerBody::getRace);
 					} else {
 						litterSizeBasedOn = Optional.ofNullable(vaginaType.getRace()).orElseGet(this::getRace);
 					}
@@ -20860,7 +21150,7 @@ public abstract class GameCharacter implements XMLSaving {
 				if(this.hasTraitActivated(Perk.FETISH_BROODMOTHER)) {
 					maximumNumberOfChildren *= 2;
 				}
-				if(partner.hasTraitActivated(Perk.FETISH_SEEDER)) {
+				if(partner!=null && partner.hasTraitActivated(Perk.FETISH_SEEDER)) {
 					maximumNumberOfChildren *= 2;
 				}
 				
@@ -20869,13 +21159,13 @@ public abstract class GameCharacter implements XMLSaving {
 				if(this.hasStatusEffect(StatusEffect.BROODMOTHER_PILL)) {
 					numberOfChildren *= 2;
 				}
-				if(partner.hasStatusEffect(StatusEffect.BROODMOTHER_PILL)) {
+				if(partner!=null && partner.hasStatusEffect(StatusEffect.BROODMOTHER_PILL)) {
 					numberOfChildren *= 2;
 				}
 				
 				List<OffspringSeed> offspring = new ArrayList<>(numberOfChildren);
 				for (int i = 0; i < numberOfChildren; i++) { // Add children here:
-					OffspringSeed os = new OffspringSeed(this, partner);
+					OffspringSeed os = new OffspringSeed(this, partner, partnerBody);
 					offspring.add(os);
 					try {
 						Main.game.addOffspringSeed(os, false);
@@ -20885,116 +21175,16 @@ public abstract class GameCharacter implements XMLSaving {
 				}
 				
 				pregnantLitter = new Litter(Main.game.getDateNow(), Main.game.getDateNow(), this, partner, fertilisationType, offspring);
+				if(partner==null) {
+					pregnantLitter.setFatherRace(partnerBody.getSubspecies());
+				}
 				this.resetAllPregnancyReactions();
 			}
 		}
 		
 		return pregnancyDescription;
-	}
-
-	/**
-	 * A variation for the pregnancy check when the owner of the cum is null.
-	 * @param partnerSubspecies The subspecies of the cum owner (if they were to exist).
-	 * @param partnerSubspecies The half-demon subspecies of the cum owner (if they were to exist).
-	 * @param cumQuantity How much cum is in this character's orifice (usually the vagina).
-	 * @param directSexInsemination true if this method is calculated from someone directly cumming inside this character, as opposed to ingesting cum from a container.
-	 */
-	public String rollForPregnancy(AbstractSubspecies partnerSubspecies, AbstractSubspecies partnerHalfDemonSubspecies, float cumQuantity, boolean directSexInsemination) {
-		return rollForPregnancy(partnerSubspecies, partnerHalfDemonSubspecies, cumQuantity, directSexInsemination, FertilisationType.NORMAL);
 	}
 	
-	/**
-	 * A variation for the pregnancy check when the owner of the cum is null.
-	 * @param partnerSubspecies The subspecies of the cum owner (if they were to exist).
-	 * @param partnerHalfDemonSubspecies The half-demon subspecies of the cum owner (if they were to exist).
-	 * @param cumQuantity How much cum is in this character's orifice (usually the vagina).
-	 * @param directSexInsemination true if this method is calculated from someone directly cumming inside this character, as opposed to ingesting cum from a container.
-	 * @param fertilisationType The type of fertilisation which is occurring (either NORMAL from cum or TRIBBING from Amazon's Secret effect).
-	 */
-	public String rollForPregnancy(AbstractSubspecies partnerSubspecies, AbstractSubspecies partnerHalfDemonSubspecies, float cumQuantity, boolean directSexInsemination, FertilisationType fertilisationType) {
-		if(partnerSubspecies.getRace()==Race.ELEMENTAL) {
-			return PregnancyDescriptor.NO_CHANCE.getDescriptor(this, null, directSexInsemination)
-					+"<p style='text-align:center;'>[style.italicsMinorBad(Elementals cannot impregnate anyone!)]<br/>[style.italicsDisabled(I will add support for impregnating/being impregnated by elementals later on!)]</p>";
-		}
-		
-		if(isVisiblyPregnant()) {
-			return PregnancyDescriptor.ALREADY_PREGNANT.getDescriptor(this, null, directSexInsemination);
-		}
-		if(this.getIncubationLitter(SexAreaOrifice.VAGINA)!=null) {
-			return PregnancyDescriptor.ALREADY_PREGNANT_EGGS.getDescriptor(this, null, directSexInsemination);
-		}
-		
-		float pregnancyChance = 0.1f;
-		int baseVirility = 25;
-		boolean selfFertile = this.isFertile();
-		
-		if(selfFertile && isAbleToBeImpregnated()) {
-			pregnancyChance += (baseVirility/100f)/2f;
-			pregnancyChance += (getAttributeValue(Attribute.FERTILITY)/100f)/2f;
-			pregnancyChance = Math.max(0, Math.min(pregnancyChance, 1));
-		} else {
-			pregnancyChance = 0;
-		}
-		if(guaranteePregnancyOnNextRoll) {
-			pregnancyChance = 1;
-			guaranteePregnancyOnNextRoll = false;
-		}
-		
-		String partnerId = Subspecies.getIdFromSubspecies(partnerSubspecies)+Main.game.getSecondsPassed();
-		PregnancyPossibility pregPoss = new PregnancyPossibility(this.getId(), partnerId, pregnancyChance);
-		
-		this.addPotentialPartnerAsMother(pregPoss);
-		
-		String pregnancyDescription = PregnancyDescriptor.getPregnancyDescriptorBasedOnProbability(pregnancyChance).getDescriptor(this, null, directSexInsemination);
-		
-		// Now roll for pregnancy:
-		if (!isPregnant()) {
-			if (!hasStatusEffect(StatusEffect.PREGNANT_0)) {
-				addStatusEffect(StatusEffect.PREGNANT_0, (60 * 60) * (4 + Util.random.nextInt(5)));
-			}
-			if (Math.random() <= pregnancyChance) {
-				AbstractRace litterSizeBasedOn = null;
-				
-				if (this.getBodyMaterial() == BodyMaterial.SLIME) {
-					litterSizeBasedOn = Race.SLIME;
-				} else {
-					AbstractVaginaType vaginaType = getVaginaType();
-					if (vaginaType.getRace()==Race.HUMAN) {
-						litterSizeBasedOn = partnerSubspecies.getRace();
-					} else {
-						litterSizeBasedOn = Optional.ofNullable(vaginaType.getRace()).orElseGet(this::getRace);
-					}
-				}
-				
-				int minimumNumberOfChildren = litterSizeBasedOn.getNumberOfOffspringLow();
-				int maximumNumberOfChildren = litterSizeBasedOn.getNumberOfOffspringHigh();
-				
-				if (hasTraitActivated(Perk.FETISH_BROODMOTHER)) {
-					maximumNumberOfChildren *= 2;
-				}
-				
-				int numberOfChildren = minimumNumberOfChildren + Util.random.nextInt((maximumNumberOfChildren-minimumNumberOfChildren)+1);
-				
-				List<OffspringSeed> offspring = new ArrayList<>(numberOfChildren);
-				for (int i = 0; i < numberOfChildren; i++) { // Add children here:
-					OffspringSeed os = new OffspringSeed(this, null, partnerSubspecies, partnerHalfDemonSubspecies);
-					offspring.add(os);
-					try {
-						Main.game.addOffspringSeed(os, false);
-					} catch (Exception e) {
-						e.printStackTrace();
-					}
-				}
-				
-				pregnantLitter = new Litter(Main.game.getDateNow(), Main.game.getDateNow(), this, null, fertilisationType, offspring);
-				pregnantLitter.setFatherRace(partnerSubspecies);
-				this.resetAllPregnancyReactions();
-			}
-		}
-		
-		return pregnancyDescription;
-	}
-
 	public boolean isPregnant() {
 		return pregnantLitter != null;
 	}
@@ -21669,7 +21859,7 @@ public abstract class GameCharacter implements XMLSaving {
 			float drainAmount = Math.min(drain, f.getMillilitres());
 			
 			if(f.isCum()) {
-				fluidsDrained.add(new FluidStored(f.getCharactersFluidID(), f.getCumSubspecies(), f.getCumHalfDemonSubspecies(), (FluidCum)f.getFluid(), Math.min(f.getMillilitres(), drainAmount)));
+				fluidsDrained.add(new FluidStored(f.getCharactersFluidID(), f.getBody(), (FluidCum)f.getFluid(), Math.min(f.getMillilitres(), drainAmount)));
 			} else if(f.isGirlCum()) {
 				fluidsDrained.add(new FluidStored(f.getCharactersFluidID(), (FluidGirlCum)f.getFluid(), Math.min(f.getMillilitres(), drainAmount)));
 			} else if(f.isMilk()) {
@@ -29634,7 +29824,7 @@ public abstract class GameCharacter implements XMLSaving {
 	 * @return true, if the character has generic horns
 	 */
 	public boolean hasGenericHorns() {
-		return body.getHorn().getType().isGeneric();
+		return body.hasGenericHorns();
 	}
 	public boolean isHornsAbleToBeUsedAsHandlesInSex() {
 		return this.hasHorns() && HornLength.getLengthFromInt(this.getHornLengthValue()).isSuitableAsHandles();
@@ -31422,7 +31612,7 @@ public abstract class GameCharacter implements XMLSaving {
 	 * @return true, if the NPC has generic wings
 	 */
 	public boolean hasGenericWings() {
-		return getWingType().isGeneric();
+		return body.hasGenericWings();
 	}
 	// Type:
 	public AbstractWingType getWingType() {

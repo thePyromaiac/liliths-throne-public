@@ -284,12 +284,12 @@ public class OccupantController {
 						}
 						
 						String ingestion;
-						try {
-							GameCharacter c = fluid.getFluidCharacter();
-							ingestion = MilkingRoom.getTargetedCharacter().ingestFluid(c, fluid.getFluid(), area.getValue(), milkAmount);
-						} catch (Exception e1) {
+//						try {
+//							GameCharacter c = fluid.getFluidCharacter();
+//							ingestion = MilkingRoom.getTargetedCharacter().ingestFluid(c, fluid.getBody(), fluid.getFluid(), area.getValue(), milkAmount);
+//						} catch (Exception e1) {
 							ingestion = MilkingRoom.getTargetedCharacter().ingestFluid(fluid, area.getValue(), milkAmount);
-						}
+//						}
 						if (!ingestion.isEmpty()) {
 							Main.game.getTextEndStringBuilder().append("</p>"
 									+"<p>"

@@ -24,7 +24,7 @@ import com.lilithsthrone.utils.Util;
 
 /**
  * @since 0.1.0
- * @version 0.4
+ * @version 0.4.9.7
  * @author Innoxia
  */
 public class Vagina implements BodyPartInterface {
@@ -50,6 +50,17 @@ public class Vagina implements BodyPartInterface {
 		girlcum = new FluidGirlCum(type.getFluidType());
 	}
 
+	public Vagina(Vagina vaginaToCopy) {
+		this.type = vaginaToCopy.type;
+		this.labiaSize = vaginaToCopy.labiaSize;
+		this.clitoris = new Clitoris(vaginaToCopy.clitoris);
+		this.pierced = vaginaToCopy.pierced;
+		this.eggLayer = vaginaToCopy.eggLayer;
+		this.orificeVagina = new OrificeVagina(vaginaToCopy.orificeVagina);
+		this.orificeUrethra = new OrificeVaginaUrethra(vaginaToCopy.orificeUrethra);
+		this.girlcum = new FluidGirlCum(vaginaToCopy.girlcum);
+	}
+	
 	public OrificeVagina getOrificeVagina() {
 		return orificeVagina;
 	}
