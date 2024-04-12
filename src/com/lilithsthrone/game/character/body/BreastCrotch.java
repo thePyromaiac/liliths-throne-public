@@ -126,6 +126,10 @@ public class BreastCrotch implements BodyPartInterface {
 		return nipples;
 	}
 
+	public void setMilk(FluidMilk milk) {
+		this.milk = milk;
+	}
+
 	public FluidMilk getMilk() {
 		return milk;
 	}

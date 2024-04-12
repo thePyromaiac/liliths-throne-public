@@ -52,14 +52,14 @@ public class Breast implements BodyPartInterface {
 		this.shape = shape;
 		this.size = size;
 		this.milkStorage = milkStorage;
-		milkStored = milkStorage;
-		milkRegeneration = FluidRegeneration.ONE_AVERAGE.getMedianRegenerationValuePerDay();
+		this.milkStored = milkStorage;
+		this.milkRegeneration = FluidRegeneration.ONE_AVERAGE.getMedianRegenerationValuePerDay();
 		this.rows = rows;
 		this.nippleCountPerBreast = nippleCountPerBreast;
 		
-		nipples = new Nipples(type.getNippleType(), nippleSize, nippleShape, areolaeSize, areolaeShape, Lactation.getLactationFromInt(milkStorage).getAssociatedWetness().getValue(), capacity, depth, elasticity, plasticity, virgin, false);
+		this.nipples = new Nipples(type.getNippleType(), nippleSize, nippleShape, areolaeSize, areolaeShape, Lactation.getLactationFromInt(milkStorage).getAssociatedWetness().getValue(), capacity, depth, elasticity, plasticity, virgin, false);
 		
-		milk = new FluidMilk(type.getFluidType(), false);
+		this.milk = new FluidMilk(type.getFluidType(), false);
 	}
 
 	public Breast(Breast breastToCopy) {
@@ -114,6 +114,10 @@ public class Breast implements BodyPartInterface {
 
 	public Nipples getNipples() {
 		return nipples;
+	}
+
+	public void setMilk(FluidMilk milk) {
+		this.milk = milk;
 	}
 
 	public FluidMilk getMilk() {

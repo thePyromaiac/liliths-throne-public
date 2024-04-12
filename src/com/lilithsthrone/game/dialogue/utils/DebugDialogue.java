@@ -124,6 +124,9 @@ public class DebugDialogue {
 				return new Response("Back", "", DEBUG_MENU){
 					@Override
 					public DialogueNode getNextDialogue() {
+						if(Main.game.isInSex()) {
+							return Main.sex.SEX_DIALOGUE;
+						}
 						return Main.game.getDefaultDialogue(false);
 					}
 				};
@@ -1925,7 +1928,7 @@ public class DebugDialogue {
 						+ " leans back in [<i style='color:"+PresetColour.CLOTHING_BLUE_LIGHT.toWebHexString()+";'>brax</i>.<i style='color:"+PresetColour.CLOTHING_PINK_LIGHT.toWebHexString()+";'>his</i>]"
 						+ " chair, wondering what happened to [<i style='color:"+PresetColour.CLOTHING_BLUE_LIGHT.toWebHexString()+";'>arthur</i>.<i style='color:"+PresetColour.CLOTHING_PINK_LIGHT.toWebHexString()+";'>name</i>]"
 						+ " after [<i style='color:"+PresetColour.CLOTHING_BLUE_LIGHT.toWebHexString()+";'>brax</i>.<i style='color:"+PresetColour.CLOTHING_PINK_LIGHT.toWebHexString()+";'>he</i>]"
-						+ " handed [[<i style='color:"+PresetColour.CLOTHING_BLUE_LIGHT.toWebHexString()+";'>arthur</i>.<i style='color:"+PresetColour.CLOTHING_PINK_LIGHT.toWebHexString()+";'>him</i>]] over to Scarlett.<br/>"
+						+ " handed [<i style='color:"+PresetColour.CLOTHING_BLUE_LIGHT.toWebHexString()+";'>arthur</i>.<i style='color:"+PresetColour.CLOTHING_PINK_LIGHT.toWebHexString()+";'>him</i>] over to Scarlett.<br/>"
 					+ "outputs:<br/>"
 					+ "'Brax leans back in his chair, wondering what happened to Arthur after he handed him over to Scarlett.'<br/><br/>"
 					

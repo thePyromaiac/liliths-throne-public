@@ -69,6 +69,10 @@ public class Testicle implements BodyPartInterface {
 		
 		this.cum = new FluidCum(testicleToCopy.cum);
 	}
+
+	public void setCum(FluidCum cum) {
+		this.cum = cum;
+	}
 	
 	public FluidCum getCum() {
 		return cum;

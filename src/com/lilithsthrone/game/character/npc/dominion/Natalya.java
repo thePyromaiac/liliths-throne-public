@@ -99,7 +99,7 @@ public class Natalya extends NPC {
 		super(isImported, new NameTriplet("Natalya"), "Lunettemartu",
 				"Holding the prestigious title of 'Stable Mistress' at the delivery company, 'Dominion Express', Natalya is responsible for the training and care of over fifty centaur slaves."
 					+ " While she tries her best to remain calm and professional at all times, her lustful demonic urges sometimes get the better of her...",
-				42, Month.OCTOBER, 12,
+				84, Month.OCTOBER, 12,
 				15,
 				null, null, null,
 				new CharacterInventory(10),
@@ -128,6 +128,9 @@ public class Natalya extends NPC {
 			this.equipMainWeaponFromNowhere(Main.game.getItemGen().generateWeapon("innoxia_bdsm_riding_crop", DamageType.PHYSICAL));
 			this.setHeight(186);
 			this.setSkinCovering(new Covering(BodyCoveringType.PENIS, PresetColour.SKIN_EBONY), false);
+		}
+		if(Main.isVersionOlderThan(Game.loadingVersion, "0.4.9.8")) {
+			this.setAge(84);
 		}
 	}
 

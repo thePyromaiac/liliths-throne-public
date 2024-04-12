@@ -65,6 +65,10 @@ public class Vagina implements BodyPartInterface {
 		return orificeVagina;
 	}
 
+	public void setGirlcum(FluidGirlCum girlcum) {
+		this.girlcum = girlcum;
+	}
+
 	public FluidGirlCum getGirlcum() {
 		return girlcum;
 	}

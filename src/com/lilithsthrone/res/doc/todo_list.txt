@@ -14,16 +14,25 @@ Not everything in this file is up-to-date, and everything is subject to change a
 		If the 'non-con' and 'rape-play allowed by default' content settings are enabled, then random NPCs with the unwilling fuck toy fetish will have 'rape-play' sex actions after defeating them in combat instead of the normal 'sex' ones.
 	
 	Items:
-		You can now sue the arcane makeup set in sex.
+		You can now use the arcane makeup set in sex.
+		Added a new 'creampie retention' enchantment for clothing, which when used in combination with an orifice modifier, prevents creampies from being lost over time in the associated orifice.
 	
 	Sex:
 		Mute NPCs will no longer act as though they're trying to talk when reacting to the possible loss of their orifices' virginity.
 		Orgasming characters will now only say the 'get pregnant' lines when giving their partner a creampie if their 'impregnation' fetish desire is positive, their partner is fertile, and the orgasming character is virile.
+		Re-added 'Finger insemination' action which was temporarily removed from Brax's old sex content some time in v0.2.x. The action is now split into 4, which take the form of: partner-start-fingering, partner-ongoing-fingering, self-start-fingering, and self-ongoing-fingering.
+		Added tracking of cum on body parts during sex, which can be seen in the inventory slot tooltips, and which is used to determine the availability and effects of the re-added 'Finger insemination' sex actions.
+	
+	Combat:
+		'Feral bite' now critically hits when the target has less than 25% health remaining.
 	
 	Other:
 		Added a 'Lip lisps' content setting, allowing you to enable or disable the lisp effect gained from having huge lips. (Accessed via 'Content options' -> 'Bodies' -> 'Lip lisps', being enabled by default.)
 		Several very minor improvements to UI (transformation menu modifiers buttons, transparent covering icon, piercing inventory tooltips).
 		Renamed 'clear' body covering to 'transparent' to make it a little more obvious what the covering was meant to represent.
+		Dolls now correctly have doll-specific fluids (milk, cum, girlcum), which all start with 'slimy' and 'mineral oil' fluid modifiers. Doll fluids are worth 1/4 that of normal fluids.
+		When a creampie dirties clothing that's covering the creampied orifice, the game is no longer interrupted by a message telling you that that's just happened, and instead a 'Creampie' event is added to the event log (in the bottom-right of the UI).
+		Increased the true age of several unique demon characters (Amber, Kate, Natalya, Zaranix, and Lunexis), although their 'age appearance' remains unaffected.
 	
 	Bugs:
 		Parsing fixes.
@@ -37,6 +46,7 @@ Not everything in this file is up-to-date, and everything is subject to change a
 		Fixed bug with stored cum (in the milking room and in orifices), where if the cum provider was transformed, their transformation would be reflected in their stored cum. (i.e. A character's stored cum now correctly saves their genetics at the moment of storage.)
 		Fixed bug where if you attacked random characters who you've befriended in Elis's alleyways, you'd be presented with a scene which had no actions, preventing you from progressing.
 		Made some very minor dialogue improvements to random NPC post-combat dialogue and corrected some minor inconsistencies in some of the scenes.
+		Using the debug menu in sex will now correctly return you to the sex scene when exiting from it, instead of putting you inthe default dialogue and thereby breaking the game.
 		
 		
 	[x] shark orgasm crash - cumming on own legs when the option presents itself sometimes causes the crash or doesn't
@@ -137,44 +147,57 @@ Not everything in this file is up-to-date, and everything is subject to change a
 		[x] post-sex scene should reflect NPC betrayal
 	
 	TEST:
-	
 	[-] "Deep throat" orgasm doesn't react to condoms being used
-	[] So, while riding cock, kissing him and fingering my own ass, he tells me to pull out because he doesnt want to taste my cum
-	[] Need to prevent prologue sex from denying positions
-	[] Also there's a minor problem with removing the condom when you're having sex.
+	[-] So, while riding cock, kissing him and fingering my own ass, he tells me to pull out because he doesnt want to taste my cum
+	[-] Need to prevent prologue sex from denying positions
+	[-] Also there's a minor problem with removing the condom when you're having sex.
 		When you click on the condom and then choose "discard", it seemingly does nothing, but after closing the inventory the condom will be removed,
 		 but you won't have a "discard" message like you normally would but checking your clothing menu you will see it has been removed. (this was present in the previous version as well)
-	[] >go to the breeding lottery in submission
+	[-] >go to the breeding lottery in submission
 		>put condoms on everyone except my chosen winner
 	
+	[x] doll fluids have value?
+		[#npc.getBreastType().getRace().getName(npc)]
+	[x] add clothing enchantment which prevents creampies from gradually disappearing
+		[x] Creampie retention + area
+			[x] add to character stats
+				[x] test save + load
+				[x] test multiple same enchantment
+			[x] test effect
+			[x] add description to creampie SEs
+	[x] should cum dirtying clothes really be an interruptable event?
+		[x] replace with event log entry
+	[x] make feral bite crit if bigger than target
+	[x] unique demons should be older?
+		[#amber.getAgeValue()][#amber.setAge(87)][#amber.getAgeValue()][#amber.getAppearsAsAgeValue()]
+	[x] debug menu do not interrupt sex
+	[x] add FINGER_INSEMINATION action from BackToWall
+		[x] conversion to new format
+		[x] self
+		[x] add cum tracking to sex
+		[x] remove cum from areas when used
+		[x] add tooltip to show how much cum on body part
+		[x] additional cum areas not being accounted for
+		[x] cum amount should be split by however many areas there are
+		[x] multiple slots should be consolidated in ingestion String
+		[x] remove cum entry if down to 0
+		[x] tooltip to say no cum available in sex if none is detected
+		[] tooltip not showing cum info
+			[x] blocked area (racial part)
+		[x] clothing interaction
+			[x] Should be using InventorySlot instead... aaaaaaaaaaaaa
+			[x] clothing tooltip
+			[x] clothing removal should clear it
 	
-	I understand you wanted to offer condoms of different colours, but right now, it's bit annoying, as you can't properly stockpile on them - could you make it so that it's possible to change colour of more than one condom at once
-		[] why are inventory pages limited...
-		[] Instead, have inventory tabs for weapons/clothing/items/consumables
-			[] Just keep adding pages as more are added
 	
+	[] major bug fixes
 	
-	ARTWORK POSTS
-		[] Yui art
-		[] Lunexis art
+	[] developers chat
 	
-	[] merlin
+	[] PRs
+		[] feb 29th a nofap day because LT crashes when launched on the leap day
+			[] Check for Month.FEBRUARY
 	
-	
-	[] doll fluids have value?
-	
-	[] make the weather be based on the season
-		[] and region
-	
-	[] should cum dirtying clothes really be an interruptable event?
-	
-	[] add clothing enchantment which prevents creampies from disappearing
-	
-	[] make feral bite crit if bigger than target
-	
-	[] unique demons should be older?
-	
-	[] add FINGER_INSEMINATION action from BackToWall
 	
 	[] club partners don't offer drinks as much as they should
 	
@@ -184,11 +207,15 @@ Not everything in this file is up-to-date, and everything is subject to change a
 	
 	[] nymphomaniac slaves should become pent up much quicker than normal
 	
-	[] PRs
-		[] feb 29th a nofap day because LT crashes when launched on the leap day
-			[] Check for Month.FEBRUARY
+	[] in prologue, Lilith should react to player sex
 	
 	HOTFIX RELEASE!
+	
+	ARTWORK POSTS
+		[] Yui art
+		[] Lunexis art
+	
+	[] merlin
 	
 	[] bug reports - from "Pregnancy descriptions are not consistent with type of pregnancy that I have."
 	
@@ -210,6 +237,17 @@ Not everything in this file is up-to-date, and everything is subject to change a
 	
 	#####################
 	
+	[] make the weather be based on the season
+		[] and region
+	
+	[] inventory UI change idea
+		[] remove page buttons
+		[] remove last row, add 1 column
+		[] page movement beneath grid in format: <---[4]-S>
+		[] beneath flames, add filter system
+			[] Type filter above: Weapons | Clothing | Items
+			[] Rarity filter below: Common | Uncommon | Rare | Epic | Legendary
+			
 	[] double penis modifier
 		[] sex actions
 	
@@ -492,7 +530,8 @@ Not everything in this file is up-to-date, and everything is subject to change a
 				[] Random or fixed description toggle for scenes
 				[] Save
 					[] content toggle warnings (e.g. if anal actions used, anal tagged)
-			[] can act as special character during sex
+			[] can act as special character during sex (i.e. acts as participant in masturbation or sex, with interaction actions being the ones below)
+				All should be MISC_NO_TURN_END
 				[] rewind
 				[] wind forwards
 				[] reset

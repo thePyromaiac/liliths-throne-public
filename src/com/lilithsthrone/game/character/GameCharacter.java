@@ -381,6 +381,7 @@ public abstract class GameCharacter implements XMLSaving {
 	private Map<InventorySlot, SizedStack<Covering>> lipstickMarks;
 	/** Clothing which has been temporarily unequipped as part of a scene which requires this character to be naked. */
 	private Map<InventorySlot, AbstractClothing> holdingClothing;
+	private List<SexAreaOrifice> creampieRetentionAreas;
 	
 	
 	// Attributes, perks & status effects:
@@ -633,6 +634,7 @@ public abstract class GameCharacter implements XMLSaving {
 		}
 		
 		savedOutfits = new ArrayList<>();
+		creampieRetentionAreas = new ArrayList<>();
 		
 		scars = new HashMap<>();
 		tattoos = new HashMap<>();
@@ -906,6 +908,16 @@ public abstract class GameCharacter implements XMLSaving {
 					element.appendChild(elementId);
 					elementId.setTextContent(id);
 				}
+			}
+		}
+		
+		if(!creampieRetentionAreas.isEmpty()) {
+			Element creampieRetentionAreasElement = doc.createElement("creampieRetentionAreas");
+			characterCoreInfo.appendChild(creampieRetentionAreasElement);
+			for(SexAreaOrifice orifice : creampieRetentionAreas) {
+				Element e = doc.createElement("area");
+				creampieRetentionAreasElement.appendChild(e);
+				e.setTextContent(orifice.toString());
 			}
 		}
 		
@@ -1916,6 +1928,19 @@ public abstract class GameCharacter implements XMLSaving {
 			Main.game.getCharacterUtils().appendToImportLog(log, "<br/>Loaded mana: "+character.getMana());
 		}
 
+		Element creampieRetentionAreasElement = (Element) element.getElementsByTagName("creampieRetentionAreas").item(0);
+		if(creampieRetentionAreasElement!=null) {
+			NodeList areaEntries = creampieRetentionAreasElement.getElementsByTagName("area");
+			for(int i=0; i<areaEntries.getLength(); i++) {
+				Element e = ((Element)areaEntries.item(i));
+				try {
+					SexAreaOrifice orifice = SexAreaOrifice.valueOf(e.getTextContent());
+					character.addCreampieRetentionArea(orifice);
+				}catch(Exception ex){
+				}
+			}
+		}
+		
 		// Knows area map:
 		try {
 			if(Main.isVersionOlderThan(version, "0.2.10")) {
@@ -4474,6 +4499,10 @@ public abstract class GameCharacter implements XMLSaving {
 
 	public void setBirthday(LocalDateTime birthday) {
 		this.birthday = birthday;
+	}
+	
+	public void setAge(int years) {
+		this.birthday = LocalDateTime.of(Main.game.getStartingDate().getYear()-(years-MINIMUM_AGE), birthday.getMonth(), (birthday.getMonth()==Month.FEBRUARY&&birthday.getDayOfMonth()==29?28:birthday.getDayOfMonth()), 12, 0);
 	}
 
 	public AgeCategory getAppearsAsAge() {
@@ -21811,6 +21840,10 @@ public abstract class GameCharacter implements XMLSaving {
 		return false;
 	}
 	
+	public boolean isAnyFluidStoredInOrifices() {
+		return fluidsStoredMap.values().stream().anyMatch(l->!l.isEmpty());
+	}
+	
 	public List<FluidStored> getAllFluidsStored() {
 		List<FluidStored> list = new ArrayList<>();
 		for(List<FluidStored> stored : fluidsStoredMap.values()) {
@@ -24089,6 +24122,25 @@ public abstract class GameCharacter implements XMLSaving {
 	public List<AbstractClothing> getClothingCurrentlyEquipped() {
 		return inventory.getClothingCurrentlyEquipped();
 	}
+
+	/**
+	 * @return A list of areas which are prevented from losing creampies due to absorption over time. This is a List as multiple entries of the same SexAreaOrifice may be present due to the presence of multiple enchantments providing this effect.
+	 */
+	public List<SexAreaOrifice> getCreampieRetentionAreas() {
+		return creampieRetentionAreas;
+	}
+	
+	public boolean hasCreampieRetentionArea(SexAreaOrifice area) {
+		return creampieRetentionAreas.contains(area);
+	}
+
+	public boolean addCreampieRetentionArea(SexAreaOrifice area) {
+		return creampieRetentionAreas.add(area);
+	}
+
+	public boolean removeCreampieRetentionArea(SexAreaOrifice area) {
+		return creampieRetentionAreas.remove(area);
+	}
 	
 	/**
 	 * @param characterViewing The character who is trying to view this character's inventory slots.
@@ -24197,6 +24249,7 @@ public abstract class GameCharacter implements XMLSaving {
 		if(characterClothingEquipper!=null && newClothing.isSealed() && newClothing.getItemTags().contains(ItemTag.PROVIDES_KEY)) {
 			characterClothingEquipper.addToUnlockKeyMap(this.getId(), slot);
 		}
+		
 
 		if(this.getClothingCurrentlyEquipped().contains(newClothing)) { // If this has been removed in getCondomEquipEffects(), don't go through it.
 			if(Main.game.isInSex() && Main.sex.getAllParticipants().contains(this)) { //TODO what even is this?
@@ -24281,6 +24334,38 @@ public abstract class GameCharacter implements XMLSaving {
 						break;
 				}
 			}
+
+			// Creampie retention:
+			if(Main.game.isStarted() && ie.getPrimaryModifier()==TFModifier.CLOTHING_CREAMPIE_RETENTION) {
+				switch(ie.getSecondaryModifier()) {
+					case TF_FACE:
+						addCreampieRetentionArea(SexAreaOrifice.MOUTH);
+						break;
+					case TF_ASS:
+						addCreampieRetentionArea(SexAreaOrifice.ANUS);
+						break;
+					case TF_VAGINA:
+						addCreampieRetentionArea(SexAreaOrifice.VAGINA);
+						break;
+					case TF_VAGINA_URETHRA:
+						addCreampieRetentionArea(SexAreaOrifice.URETHRA_VAGINA);
+						break;
+					case TF_PENIS_URETHRA:
+						addCreampieRetentionArea(SexAreaOrifice.URETHRA_PENIS);
+						break;
+					case TF_BREASTS:
+						addCreampieRetentionArea(SexAreaOrifice.BREAST);
+						break;
+					case TF_BREASTS_CROTCH:
+						addCreampieRetentionArea(SexAreaOrifice.BREAST_CROTCH);
+						break;
+					case TF_SPINNERET:
+						addCreampieRetentionArea(SexAreaOrifice.SPINNERET);
+						break;
+					default:
+						break;
+				}
+			}
 		}
 		updateInventoryListeners();
 	}
@@ -24300,6 +24385,10 @@ public abstract class GameCharacter implements XMLSaving {
 			} else {
 				System.err.println("Warning: Sealed clothing '"+clothing.getName()+"' did not have associated unlock key removed from player key mappings.");
 			}
+		}
+		
+		if(Main.game.isInSex()) {
+			Main.sex.clearAmountCummedOnSlot(this, slot);
 		}
 		
 		if(Main.game.isInSex() && Main.sex.getAllParticipants().contains(this)) {
@@ -24339,6 +24428,37 @@ public abstract class GameCharacter implements XMLSaving {
 					case MAJOR_DRAIN:
 						clothingFetishDesireModifiersMap.putIfAbsent(associatedFetish, 0);
 						clothingFetishDesireModifiersMap.put(associatedFetish, clothingFetishDesireModifiersMap.get(associatedFetish) + 999);
+						break;
+				}
+			}
+			// Creampie retention:
+			if(Main.game.isStarted() && ie.getPrimaryModifier()==TFModifier.CLOTHING_CREAMPIE_RETENTION) {
+				switch(ie.getSecondaryModifier()) {
+					case TF_FACE:
+						removeCreampieRetentionArea(SexAreaOrifice.MOUTH);
+						break;
+					case TF_ASS:
+						removeCreampieRetentionArea(SexAreaOrifice.ANUS);
+						break;
+					case TF_VAGINA:
+						removeCreampieRetentionArea(SexAreaOrifice.VAGINA);
+						break;
+					case TF_VAGINA_URETHRA:
+						removeCreampieRetentionArea(SexAreaOrifice.URETHRA_VAGINA);
+						break;
+					case TF_PENIS_URETHRA:
+						removeCreampieRetentionArea(SexAreaOrifice.URETHRA_PENIS);
+						break;
+					case TF_BREASTS:
+						removeCreampieRetentionArea(SexAreaOrifice.BREAST);
+						break;
+					case TF_BREASTS_CROTCH:
+						removeCreampieRetentionArea(SexAreaOrifice.BREAST_CROTCH);
+						break;
+					case TF_SPINNERET:
+						removeCreampieRetentionArea(SexAreaOrifice.SPINNERET);
+						break;
+					default:
 						break;
 				}
 			}

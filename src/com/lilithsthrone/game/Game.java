@@ -58,7 +58,11 @@ import com.lilithsthrone.game.character.attributes.AffectionLevel;
 import com.lilithsthrone.game.character.attributes.Attribute;
 import com.lilithsthrone.game.character.attributes.ObedienceLevel;
 import com.lilithsthrone.game.character.body.CoverableArea;
+import com.lilithsthrone.game.character.body.FluidCum;
+import com.lilithsthrone.game.character.body.FluidGirlCum;
+import com.lilithsthrone.game.character.body.FluidMilk;
 import com.lilithsthrone.game.character.body.coverings.Covering;
+import com.lilithsthrone.game.character.body.types.FluidType;
 import com.lilithsthrone.game.character.body.valueEnums.GenitalArrangement;
 import com.lilithsthrone.game.character.effects.Perk;
 import com.lilithsthrone.game.character.effects.PerkManager;
@@ -2059,6 +2063,18 @@ public class Game implements XMLSaving {
 					for(NPC npc : Main.game.getAllNPCs()) {
 						if(npc instanceof Elemental) {
 							npc.setAgeAppearanceAbsolute(((Elemental)npc).getSummoner().getAppearsAsAgeValue());
+						}
+					}
+				}
+				
+				// Reset doll fluids to their correct types:
+				if(Main.isVersionOlderThan(Game.loadingVersion, "0.4.9.8")) {
+					for(NPC npc : Main.game.getAllNPCs()) {
+						if(npc.isDoll()) {
+							npc.getBody().getBreast().setMilk(new FluidMilk(FluidType.MILK_DOLL, false));
+							npc.getBody().getBreastCrotch().setMilk(new FluidMilk(FluidType.MILK_DOLL, true));
+							npc.getBody().getPenis().getTesticle().setCum(new FluidCum(FluidType.CUM_DOLL));
+							npc.getBody().getVagina().setGirlcum(new FluidGirlCum(FluidType.GIRL_CUM_DOLL));
 						}
 					}
 				}
