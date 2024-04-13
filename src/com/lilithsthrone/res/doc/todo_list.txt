@@ -11,9 +11,12 @@ Not everything in this file is up-to-date, and everything is subject to change a
 		Tattoos can now be enchanted with 'creampie retention' in the same manner as clothing, and enchanted clothing or tattoos with a creampie retention enchantment now have the generic name postfix of 'of plugging' instead of 'of transformation'.
 		Added a 'Modify' button to the tattoo addition screen, allowing you to modify your current tattoos instead of having to remove and then add new ones.
 		The 'written out' tattoo counter style is now capitalised.
+		Improved the images for 'Horse-shoe' and 'Lines' tattoos, renamed 'Paw' tattoo to 'Dog paw' and improved the image, and added 'Detailed flowers' and 'Cat paw' tattoos.
 	
 	Other:
 		Kate's womb tattoo now tracks current litter size, and she has some minor dialogue related to this when the player reacts to her pregnancy for the first time.
+		The 'D.E.C.K' item is now classed as a unique item, and after purchasing one from Saellatrix, you are unable to purchase any more. If you have more than one D.E.C.K., extras will be removed when loading into this version and the cost will be refunded.
+		The 'Nymphomaniac' perk now causes the owner to gain the 'Pent-up' and 'Chastity' status effects twice as quickly as normal.
 	
 	Bugs:
 		Characters who have a negative desire towards the pregnancy or cum addict fetishes will no longer use the 'Finger insemination' sex actions (so Lilaya will no longer use this action and then get mad at you for impregnating her).
@@ -21,7 +24,10 @@ Not everything in this file is up-to-date, and everything is subject to change a
 		Fixed bug where Vicky would often repeatedly react to her and the player's pregnancy as though she was seeing it for the first time.
 		Fixed incorrect tooltip descriptions and sizing for the 'Add/Remove' buttons in the tattoo management menu.
 		The tooltip for the active item in the enchantment load/save screen now works.
-	
+		Reduced the chance for demons to have male offspring from 75% to 10%.
+		Fixed NPC transformative potion generation setting ass size instead of hip size.
+		Fixed issue where multiple characters with the 'object of desire' trait would all increase the orgasms required before satisfied, instead of this effect only being applied once as intended.
+		Fixed issue where arm wings were described in a character's body description as being large enough to allow flight when they actually weren't.
 	
 	
 	[x] finger insemination check for NPC usage (Lilaya check)
@@ -54,20 +60,25 @@ Not everything in this file is up-to-date, and everything is subject to change a
 		[-] Right panel resets when switching tattoos in slave management
 		[x] Tattoo add button always references removal
 		[] add more tattoos
+			[x] cat paw
 			[] kiss
 			[] bird
 			[] stag
 			[] lock
 			[] key
 			[] flames
-		[] improve
-			[] paw print
-			[] horse shoe
-			[] lines
-			[] flowers
+		[x] improve
+			[x] paw print (dog)
+			[x] horse shoe
+			[x] lines
+			[x] flowers -> detailed variant
+		[] merge PR1805 when github finally sends me the auth code email... -.-
+	[x] developers chat
+		[x] bugs
+		[x] make DECK a key item
+			[x] once owned, disable repeat purchase
+			[x] refund cost if have more than 1 when loading in
 	
-	
-	[] developers chat
 	
 	[] PRs
 		[] feb 29th a nofap day because LT crashes when launched on the leap day
@@ -81,7 +92,7 @@ Not everything in this file is up-to-date, and everything is subject to change a
 	
 	[] deep sleeper suggestion
 	
-	[] nymphomaniac slaves should become pent up much quicker than normal
+	[x] nymphomaniac slaves should become pent up much quicker than normal
 	
 	[] in prologue, Lilith should react to player sex
 	

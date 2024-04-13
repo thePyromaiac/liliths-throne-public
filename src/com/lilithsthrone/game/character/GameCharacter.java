@@ -7489,7 +7489,7 @@ public abstract class GameCharacter implements XMLSaving {
 			incrementStatusEffectDuration(se, -secondsPassed);
 			
 			if(appliedSe.getSecondsRemaining()<0
-					&& (!se.isConditionsMet(this) || se.getApplicationLength()>0)) { // If getApplicationLength() is not -1, then this status effect should be removed and re-checked, even if isConditionsMet() is returning true.
+					&& (!se.isConditionsMet(this) || se.getApplicationLength(this)>0)) { // If getApplicationLength() is not -1, then this status effect should be removed and re-checked, even if isConditionsMet() is returning true.
 				tempListStatusEffects.add(se);
 			}
 		}
@@ -7507,7 +7507,7 @@ public abstract class GameCharacter implements XMLSaving {
 						|| (se.getCategory()==StatusEffectCategory.INVENTORY && requiresInventoryStatusEffectCheck)
 						|| (se.getCategory()==StatusEffectCategory.ATTRIBUTE && requiresAttributeStatusEffectCheck)) {
 					if(se.isConditionsMet(this)) {
-						addStatusEffect(se, se.getApplicationLength()); // Default application length is -1
+						addStatusEffect(se, se.getApplicationLength(this)); // Default application length is -1
 					}
 				}
 			}
@@ -7962,7 +7962,7 @@ public abstract class GameCharacter implements XMLSaving {
 			for(GameCharacter character : Main.sex.getAllParticipants(false)) {
 				if(!character.equals(this) && character.hasTraitActivated(Perk.OBJECT_OF_DESIRE)) {
 					increment++;
-					continue; // Prevent this from stacking
+					break; // Prevent this from stacking
 				}
 			}
 		}
