@@ -26767,6 +26767,10 @@ public abstract class GameCharacter implements XMLSaving {
 		return new HashMap<>(tattoos);
 	}
 	
+	public boolean hasAnyTattoos() {
+		return !tattoos.isEmpty();
+	}
+	
 	public void addTattoo(InventorySlot invSlot, Tattoo tattoo) {
 		removeTattoo(invSlot);
 		tattoos.put(invSlot, tattoo);
@@ -26842,6 +26846,37 @@ public abstract class GameCharacter implements XMLSaving {
 						break;
 				}
 			}
+			// Creampie retention:
+			if(Main.game.isStarted() && ie.getPrimaryModifier()==TFModifier.CLOTHING_CREAMPIE_RETENTION) {
+				switch(ie.getSecondaryModifier()) {
+					case TF_FACE:
+						addCreampieRetentionArea(SexAreaOrifice.MOUTH);
+						break;
+					case TF_ASS:
+						addCreampieRetentionArea(SexAreaOrifice.ANUS);
+						break;
+					case TF_VAGINA:
+						addCreampieRetentionArea(SexAreaOrifice.VAGINA);
+						break;
+					case TF_VAGINA_URETHRA:
+						addCreampieRetentionArea(SexAreaOrifice.URETHRA_VAGINA);
+						break;
+					case TF_PENIS_URETHRA:
+						addCreampieRetentionArea(SexAreaOrifice.URETHRA_PENIS);
+						break;
+					case TF_BREASTS:
+						addCreampieRetentionArea(SexAreaOrifice.BREAST);
+						break;
+					case TF_BREASTS_CROTCH:
+						addCreampieRetentionArea(SexAreaOrifice.BREAST_CROTCH);
+						break;
+					case TF_SPINNERET:
+						addCreampieRetentionArea(SexAreaOrifice.SPINNERET);
+						break;
+					default:
+						break;
+				}
+			}
 		}
 	}
 	
@@ -26875,6 +26910,37 @@ public abstract class GameCharacter implements XMLSaving {
 					case MAJOR_DRAIN:
 						clothingFetishDesireModifiersMap.putIfAbsent(associatedFetish, 0);
 						clothingFetishDesireModifiersMap.put(associatedFetish, clothingFetishDesireModifiersMap.get(associatedFetish) + 999);
+						break;
+				}
+			}
+			// Creampie retention:
+			if(Main.game.isStarted() && ie.getPrimaryModifier()==TFModifier.CLOTHING_CREAMPIE_RETENTION) {
+				switch(ie.getSecondaryModifier()) {
+					case TF_FACE:
+						removeCreampieRetentionArea(SexAreaOrifice.MOUTH);
+						break;
+					case TF_ASS:
+						removeCreampieRetentionArea(SexAreaOrifice.ANUS);
+						break;
+					case TF_VAGINA:
+						removeCreampieRetentionArea(SexAreaOrifice.VAGINA);
+						break;
+					case TF_VAGINA_URETHRA:
+						removeCreampieRetentionArea(SexAreaOrifice.URETHRA_VAGINA);
+						break;
+					case TF_PENIS_URETHRA:
+						removeCreampieRetentionArea(SexAreaOrifice.URETHRA_PENIS);
+						break;
+					case TF_BREASTS:
+						removeCreampieRetentionArea(SexAreaOrifice.BREAST);
+						break;
+					case TF_BREASTS_CROTCH:
+						removeCreampieRetentionArea(SexAreaOrifice.BREAST_CROTCH);
+						break;
+					case TF_SPINNERET:
+						removeCreampieRetentionArea(SexAreaOrifice.SPINNERET);
+						break;
+					default:
 						break;
 				}
 			}

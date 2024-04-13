@@ -2989,10 +2989,6 @@ public class Game implements XMLSaving {
 					} else {
 						npc.endPregnancy(true);
 					}
-					
-					if(npc instanceof Kate) {
-						Main.game.getDialogueFlags().values.remove(DialogueFlagValue.reactedToKatePregnancy);
-					}
 				}
 			}
 			
