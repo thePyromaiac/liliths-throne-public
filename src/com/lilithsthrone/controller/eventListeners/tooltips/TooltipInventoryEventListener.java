@@ -156,12 +156,12 @@ public class TooltipInventoryEventListener implements EventListener {
 								slotEquippedTo,
 								dyeColours,
 								InventoryDialogue.dyePreviewPattern,
-								InventoryDialogue.dyePreviewPatterns,
+								InventoryDialogue.dyePreviewPatternColours,
 								InventoryDialogue.getDyePreviewStickersAsStrings())
 						+ "</div>");
 			
 			} else if(patternColour!=null) {
-				List<Colour> dyeColours = new ArrayList<>(InventoryDialogue.dyePreviewPatterns);
+				List<Colour> dyeColours = new ArrayList<>(InventoryDialogue.dyePreviewPatternColours);
 				dyeColours.remove(colourIndex);
 				dyeColours.add(colourIndex, patternColour);
 				tooltipSB.append("<div class='title' style='color:" + subtitleColour.toWebHexString() + ";'>" + Util.capitaliseSentence(dyeClothing.getName()) + "</div>"

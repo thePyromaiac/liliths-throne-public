@@ -226,9 +226,15 @@ public abstract class AbstractClothing extends AbstractCoreItem implements XMLSa
 		} else {
 			pattern = "none";
 		}
-		
+
+		// Only fill pattern colours with a random colour if they're visible with the currently selected pattern, otherwise fill the missing colours with the first of the defaults
+		// This prevents the issue where multiple clothing with apparently the same colour patterning wouldn't stack due to a 'hidden' pattern colour being different in each item of clothing
 		for(ColourReplacement cr : clothingType.getPatternColourReplacements()) {
-			patternColours.add(cr.getRandomOfDefaultColours());
+			if(Pattern.getPattern(pattern).isRecolourAvailable(cr)) {
+				patternColours.add(cr.getRandomOfDefaultColours());
+			} else {
+				patternColours.add(cr.getFirstOfDefaultColours());
+			}
 		}
 	}
 	
@@ -375,10 +381,13 @@ public abstract class AbstractClothing extends AbstractCoreItem implements XMLSa
 			innerElement.setAttribute("id", this.getPattern());
 			
 			for(int i=0; i<this.getPatternColours().size(); i++) {
-				Element colourElement = doc.createElement("colour");
-				innerElement.appendChild(colourElement);
-				colourElement.setAttribute("i", String.valueOf(i));
-				colourElement.setTextContent(this.getPatternColour(i).getId());
+				ColourReplacement cr = this.getClothingType().getPatternColourReplacement(i);
+				if(!cr.getAllColours().isEmpty() && Pattern.getPattern(this.getPattern()).isRecolourAvailable(cr)) { // Only save colours which are applicable to the current pattern
+					Element colourElement = doc.createElement("colour");
+					innerElement.appendChild(colourElement);
+					colourElement.setAttribute("i", String.valueOf(i));
+					colourElement.setTextContent(this.getPatternColour(i).getId());
+				}
 			}
 		}
 		
@@ -697,6 +706,18 @@ public abstract class AbstractClothing extends AbstractCoreItem implements XMLSa
 					clothing.setPatternColour(Integer.valueOf(cElement.getAttribute("i")), PresetColour.getColourFromId(cElement.getTextContent()));
 				}
 				
+				// If any pattern colours are missing (i.e. were not saved due to the current pattern not needing them), then fill the missing colours with the first of the defaults
+				// This prevents the issue where multiple clothing with apparently the same colour patterning wouldn't stack due to a 'hidden' pattern colour being different in each item of clothing
+				int defaultPatternReplacementSize = clothing.getClothingType().getPatternColourReplacements().size();
+				if(nodes.getLength() < defaultPatternReplacementSize) {
+					for(int i=nodes.getLength(); i<defaultPatternReplacementSize; i++) {
+						ColourReplacement cr = clothing.getClothingType().getPatternColourReplacement(i);
+						if(cr.getAllColours().isEmpty() || !Pattern.getPattern(clothing.getPattern()).isRecolourAvailable(cr)) {
+							clothing.setPatternColour(i, cr.getFirstOfDefaultColours());
+						}
+					}
+				}
+				
 			} else {
 				clothing.setPattern("none");
 			}
@@ -889,12 +910,24 @@ public abstract class AbstractClothing extends AbstractCoreItem implements XMLSa
 	}
 
 	public void setPatternColours(List<Colour> patternColours) {
-		this.patternColours = new ArrayList<>(patternColours);
+		for(int i=0; i<patternColours.size(); i++) {
+			setPatternColour(i, patternColours.get(i));
+		}
 	}
 	
 	public void setPatternColour(int index, Colour colour) {
-		patternColours.remove(index);
-		patternColours.add(index, colour);
+		if(patternColours.size()>index) {
+			patternColours.remove(index);
+		}
+
+		// If the currently active pattern has this index as a visible colour, then set it as normal. Otherwise, set it to the first of the defaults
+		// This prevents the issue where multiple clothing with apparently the same colour patterning wouldn't stack due to a 'hidden' pattern colour being different in each item of clothing
+		ColourReplacement cr = clothingType.getPatternColourReplacements().get(index);
+		if(Pattern.getPattern(pattern).isRecolourAvailable(cr)) {
+			patternColours.add(index, colour);
+		} else {
+			patternColours.add(index, cr.getFirstOfDefaultColours());
+		}
 	}
 	
 	public void setSticker(StickerCategory stickerCategory, Sticker sticker) {
@@ -2218,11 +2251,11 @@ public abstract class AbstractClothing extends AbstractCoreItem implements XMLSa
 						:this.getCoreEnchantment().getPositiveEnchantment();
 				return "of "+(coloured?"<"+tag+" style='color:"+this.getCoreEnchantment().getColour().toWebHexString()+";'>"+name+"</"+tag+">":name);
 				
-			} else if(this.getEffects().stream().anyMatch(ie->ie.getSecondaryModifier() != TFModifier.CLOTHING_VIBRATION)) {
-				return "of "+(coloured?"<"+tag+" style='color:"+PresetColour.TRANSFORMATION_GENERIC.toWebHexString()+";'>transformation</"+tag+">":"transformation");
-				
 			} else if(this.getEffects().stream().anyMatch(ie->ie.getPrimaryModifier() == TFModifier.CLOTHING_CREAMPIE_RETENTION)) {
 				return "of "+(coloured?"<"+tag+" style='color:"+PresetColour.CUM.toWebHexString()+";'>plugging</"+tag+">":"plugging");
+				
+			} else if(this.getEffects().stream().anyMatch(ie->ie.getSecondaryModifier() != TFModifier.CLOTHING_VIBRATION)) {
+				return "of "+(coloured?"<"+tag+" style='color:"+PresetColour.TRANSFORMATION_GENERIC.toWebHexString()+";'>transformation</"+tag+">":"transformation");
 				
 			}
 		}

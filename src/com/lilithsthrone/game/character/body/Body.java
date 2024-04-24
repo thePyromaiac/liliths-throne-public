@@ -129,6 +129,9 @@ import com.lilithsthrone.utils.colours.PresetColour;
  */
 public class Body implements XMLSaving {
 	
+	/** This determines the maximum amount of fluid (in mL) that can be stored in the SexAreaOrifice.VAGINA and SexAreaOrifice.URETHRA_VAGINA while pregnant. */
+	public static final int MAXIMUM_CREAMPIE_WHILE_PREGNANT = 250;
+	
 	// Required:
 	private Arm arm;
 	private Ass ass;

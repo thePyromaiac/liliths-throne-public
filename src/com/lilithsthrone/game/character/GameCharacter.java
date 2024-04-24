@@ -3490,7 +3490,7 @@ public abstract class GameCharacter implements XMLSaving {
 			artworkList.clear();
 			artworkFolderName = folder;
 		}
-
+		
 		if(!folder.isEmpty()) {
 			if(!this.isUnique() || this.isPlayer()) {
 				File f = new File("data/images/"+Main.game.getId()+"/characters/" + folder);
@@ -3776,14 +3776,15 @@ public abstract class GameCharacter implements XMLSaving {
 									:"")
 							+ (!relationships.isEmpty()
 									?UtilText.parse(this, "[npc.She] is your <span style='color:"+this.getFemininity().getColour().toWebHexString()+"'>"+relationships+"</span>. ")
-									:"")
-							+ AffectionLevel.getDescription(this, Main.game.getPlayer(), true));
-				int affection = (int)this.getAffection(Main.game.getPlayer());
-				infoScreenSB.append(" (<span style='color:"+this.getAffectionLevel(Main.game.getPlayer()).getColour().toWebHexString()+";'>"+(affection>0?"+":"")+affection+"</span>)");
+									:""));
+				
 
-				if(!this.getAffectionMap().isEmpty()) {
+				//if(!this.getAffectionMap().isEmpty()) {
 					infoScreenSB.append("<br/>");
-				}
+				//}
+				int affection = (int)this.getAffection(Main.game.getPlayer());
+				infoScreenSB.append(AffectionLevel.getDescription(this, Main.game.getPlayer(), true)+" (<span style='color:"+this.getAffectionLevel(Main.game.getPlayer()).getColour().toWebHexString()+";'>"+(affection>0?"+":"")+affection+"</span>)");
+				
 				for(Entry<String, Float> entry : this.getAffectionMap().entrySet()) {
 					try {
 						GameCharacter target = Main.game.getNPCById(entry.getKey());
@@ -5035,8 +5036,18 @@ public abstract class GameCharacter implements XMLSaving {
 	}
 	
 	public void setSlaveJob(int hour, SlaveJob slaveJob) {
+		if(hour>=workHours.length) {
+			new ArrayIndexOutOfBoundsException().printStackTrace();
+			return;
+		}
 		workHours[hour] = slaveJob;
 		recalculateSleepHours();
+	}
+	
+	public void setSlaveJob24Hours(SlaveJob slaveJob) {
+		for(int i=0; i<workHours.length; i++) {
+			workHours[i] = slaveJob;
+		}
 	}
 	
 	/**
@@ -5044,8 +5055,7 @@ public abstract class GameCharacter implements XMLSaving {
 	 */
 	public boolean isAsleep() {
 		if(Main.game.isInSex() && Main.sex.getAllParticipants().contains(this)) {
-			Value<ImmobilisationType, GameCharacter> value = Main.sex.getImmobilisationType(this);
-			return value!=null && value.getKey()==ImmobilisationType.SLEEP;
+			return Main.sex.getImmobilisationTypes(this).containsKey(ImmobilisationType.SLEEP);
 		}
 		return this.hasStatusEffect(StatusEffect.SLEEPING) || this.hasStatusEffect(StatusEffect.SLEEPING_HEAVY);
 	}
@@ -5057,7 +5067,9 @@ public abstract class GameCharacter implements XMLSaving {
 	
 	public boolean isAffectedBySleepingStatusEffect() {
 		return this.isPlayer()
-				|| (!this.isUnique() || this.isSlave() && this.getOwner().isPlayer()) || Main.game.getPlayer().getFriendlyOccupants().contains(this.getId());
+//				|| (!this.isUnique() || (this.isSlave() && this.getOwner().isPlayer())) // This makes all NPCs sleep, often at very inconvenient times (such as during encounters and combat...)
+				|| (this.isSlave() && this.getOwner().isPlayer())
+				|| Main.game.getPlayer().getFriendlyOccupants().contains(this.getId());
 	}
 	
 	public boolean isSleepingAtHour(int hour) {
@@ -7905,7 +7917,7 @@ public abstract class GameCharacter implements XMLSaving {
 								+ "[npc.speech(You know you want it!)]",
 						"[npc.Name] blows a kiss at you, before winking suggestively in your direction.",
 						"Biting [npc.her] lip and putting on [npc.her] most smouldering look, [npc.name] runs [npc.her] hands slowly up [npc.her] inner thighs.",
-						"As [npc.name] gives you [npc.her] most innocent look, [npc.she] blows you a little kiss.",
+						"[npc.Name] gives you [npc.her] most innocent look and blows you a kiss.",
 						"Turning around, [npc.name] lets out a playful giggle as [npc.she] gives [npc.her] [npc.ass+] a slap.",
 						"[npc.Name] slowly runs [npc.her] [npc.hands] up the length of [npc.her] body, before pouting at you."));
 				
@@ -7931,7 +7943,7 @@ public abstract class GameCharacter implements XMLSaving {
 								+ "[npc.speech(You know you want a taste of this!)]",
 						"[npc.Name] blows a kiss at you, before winking suggestively in your direction.",
 						"Smiling confidently at you, [npc.name] slowly runs [npc.her] hands up [npc.her] inner thighs.",
-						"As [npc.name] gives you [npc.her] most seductive look, [npc.she] blows you a kiss.",
+						"[npc.Name] gives you [npc.her] most seductive look and blows you a kiss.",
 						"Turning around, [npc.name] lets out a playful laugh as [npc.she] gives [npc.her] [npc.ass+] a slap.",
 						"[npc.Name] tries to look as commanding as possible as [npc.she] smirks playfully at you."));
 				
@@ -15582,8 +15594,47 @@ public abstract class GameCharacter implements XMLSaving {
 	
 	// Area reveals: TODO All reveals need to take in character being revealed
 
+	private String getAreaRevealWhileImmobilised(GameCharacter characterBeingRevealed, GameCharacter characterReacting, String areaString, boolean plural) {
+		StringBuilder sb = new StringBuilder();
+		GameCharacter immobiliser = null;
+		Map<ImmobilisationType, GameCharacter> immobilisation = Main.sex.getImmobilisationTypes(characterReacting);
+		// Prioritise sleeping, then command, then any other:
+		if(immobilisation.containsKey(ImmobilisationType.SLEEP)) {
+			sb.append("[npc.Name] [npc.verb(remain)] asleep and thus unable to react as [npc2.namePos] "+areaString+" "+(plural?"are":"is")+" revealed.");
+			
+		} else if(immobilisation.containsKey(ImmobilisationType.COMMAND)) {
+			sb.append("[npc.Name] [npc.verb(remain)] completely motionless and doesn't react as [npc2.namePos] "+areaString+" "+(plural?"are":"is")+" revealed.");
+			
+		} else {
+			Entry<ImmobilisationType, GameCharacter> entry = immobilisation.entrySet().iterator().next();
+			switch(entry.getKey()) {
+				case CHAINS:
+					sb.append("[npc.Name] [npc.verb(try)] to make a move as [npc2.namePos] "+areaString+" "+(plural?"are":"is")+" revealed, but the chains binding [npc.her] body in place keep [npc.herHim] immobilised.");
+				case ROPE:
+					sb.append("[npc.Name] [npc.verb(try)] to make a move as [npc2.namePos] "+areaString+" "+(plural?"are":"is")+" revealed, but the ropes binding [npc.her] body in place keep [npc.herHim] immobilised.");
+				case COCOON:
+					sb.append("[npc.Name] [npc.verb(try)] to make a move as [npc2.namePos] "+areaString+" "+(plural?"are":"is")+" revealed, but [npc.her] cocoon's strong webbing keeps [npc.herHim] locked in place.");
+				case TAIL_CONSTRICTION:
+					immobiliser = entry.getValue();
+					sb.append("[npc.Name] [npc.verb(try)] to make a move as [npc2.namePos] "+areaString+" "+(plural?"are":"is")+" revealed, but [npc3.name] [npc3.verb(use)] [npc3.her] long tail to keep [npc.herHim] constricted and firmly locked in place.");
+				case TENTACLE_RESTRICTION:
+					immobiliser = entry.getValue();
+					sb.append("[npc.Name] [npc.verb(try)] to make a move as [npc2.namePos] "+areaString+" "+(plural?"are":"is")+" revealed, but [npc3.name] [npc3.verb(use)] [npc3.her] [npc3.tentacles] to keep [npc.herHim] firmly held in place.");
+				case WITCH_SEAL:
+					sb.append("[npc.Name] [npc.verb(try)] to make a move as [npc2.namePos] "+areaString+" "+(plural?"are":"is")+" revealed, but the Witch's Seal keeps [npc.herHim] locked in place.");
+				case SLEEP:
+				case COMMAND:
+					sb.append("[npc.Name] [npc.do]n't react as [npc2.namePos] "+areaString+" "+(plural?"are":"is")+" revealed.");
+			}
+		}
+		if(immobiliser!=null) {
+			return UtilText.parse(Util.newArrayListOfValues(characterReacting, characterBeingRevealed, immobiliser), sb.toString());
+		} else {
+			return UtilText.parse(characterReacting, characterBeingRevealed, sb.toString());
+		}
+	}
+	
 	public String getAssRevealDescription(GameCharacter characterBeingRevealed, GameCharacter characterReacting, boolean locationSpecific) {
-		
 		if(locationSpecific) {
 			switch(this.getGenitalArrangement()) {
 				case CLOACA:
@@ -15601,93 +15652,30 @@ public abstract class GameCharacter implements XMLSaving {
 //			selfPace = Main.sex.getSexPace(characterBeingRevealed);
 			reactingPace = Main.sex.getSexPace(characterReacting);
 		}
-		
-		StringBuilder sb = new StringBuilder();
-		
-		if(characterBeingRevealed.isPlayer()) {
-			if(Main.game.isInSex() && Main.sex.isCharacterImmobilised(characterReacting)) {
-				Value<ImmobilisationType, GameCharacter> immobilisation = Main.sex.getImmobilisationType(characterReacting);
-				switch(immobilisation.getKey()) {
-					case CHAINS:
-						return UtilText.parse(characterReacting, "[npc.Name] tries to make a move as your [pc.asshole+] is revealed, but the chains binding [npc.her] body in place keep [npc.herHim] immobilised.");
-					case ROPE:
-						return UtilText.parse(characterReacting, "[npc.Name] tries to make a move as your [pc.asshole+] is revealed, but the ropes binding [npc.her] body in place keep [npc.herHim] immobilised.");
-					case COCOON:
-						return UtilText.parse(characterReacting, "[npc.Name] tries to make a move as your [pc.asshole+] is revealed, but [npc.her] cocoon's strong webbing keeps [npc.herHim] locked in place.");
-					case TAIL_CONSTRICTION:
-						return UtilText.parse(characterReacting, immobilisation.getValue(),
-								"[npc.Name] tries to make a move as your [pc.asshole+] is revealed, but [npc2.name] [npc2.verb(use)] [npc2.her] long tail to keep [npc.herHim] constricted and firmly locked in place.");
-					case TENTACLE_RESTRICTION:
-						return UtilText.parse(characterReacting, immobilisation.getValue(),
-								"[npc.Name] tries to make a move as your [pc.asshole+] is revealed, but [npc2.name] [npc2.verb(use)] [npc2.her] [npc2.tentacles] to keep [npc.herHim] firmly held in place.");
-					case WITCH_SEAL:
-						return UtilText.parse(characterReacting, "[npc.Name] tries to make a move as your [pc.asshole+] is revealed, but the Witch's Seal keeps [npc.herHim] locked in place.");
-					case COMMAND:
-						return UtilText.parse(characterReacting, "[npc.Name] [npc.verb(remain)] completely motionless and doesn't react as your [pc.asshole+] is revealed.");
-					case SLEEP:
-						return UtilText.parse(characterReacting, "[npc.Name] [npc.verb(remain)] asleep and thus unable to react as your [pc.asshole+] is revealed.");
-				}
-			}
-			
-//			sb.append("<p>");
-			switch(reactingPace) {
-				case DOM_GENTLE:
-					sb.append(UtilText.parse(characterReacting, "[npc.Name] lets out a soft [npc.moan] as your [pc.asshole+] is revealed."));
-					break;
-				case DOM_NORMAL:
-					sb.append(UtilText.parse(characterReacting, "[npc.Name] lets out [npc.a_moan+] as your [pc.asshole+] is revealed."));
-					break;
-				case DOM_ROUGH:
-					sb.append(UtilText.parse(characterReacting, "[npc.Name] lets out a hungry growl as your [pc.asshole+] is revealed."));
-					break;
-				case SUB_EAGER:
-					sb.append(UtilText.parse(characterReacting, "[npc.Name] lets out [npc.a_moan+] as your [pc.asshole+] is revealed."));
-					break;
-				case SUB_NORMAL:
-					sb.append(UtilText.parse(characterReacting, "[npc.Name] lets out [npc.a_moan] as your [pc.asshole+] is revealed."));
-					break;
-				case SUB_RESISTING:
-					sb.append(UtilText.parse(characterReacting, "[npc.Name] lets out [npc.a_sob+] as your [pc.asshole+] is revealed."));
-					break;
-				default:
-					sb.append(UtilText.parse(characterReacting, "[npc.Name] lets out [npc.a_moan] as your [pc.asshole+] is revealed."));
-					break;
-			}
-//			sb.append("</p>");
-			
-		} else {
-			if(Main.game.isInSex() && Main.sex.isCharacterImmobilised(characterReacting)) {
-				Value<ImmobilisationType, GameCharacter> immobilisation = Main.sex.getImmobilisationType(characterReacting);
-				switch(immobilisation.getKey()) {
-					case CHAINS:
-						return UtilText.parse(characterReacting, characterBeingRevealed,
-								"[npc.Name] [npc.verb(try)] to make a move as [npc2.namePos] [npc2.asshole+] is revealed, but the chains binding [npc.her] body in place keep [npc.herHim] immobilised.");
-					case ROPE:
-						return UtilText.parse(characterReacting, characterBeingRevealed,
-								"[npc.Name] [npc.verb(try)] to make a move as [npc2.namePos] [npc2.asshole+] is revealed, but the ropes binding [npc.her] body in place keep [npc.herHim] immobilised.");
-					case COCOON:
-						return UtilText.parse(characterReacting, characterBeingRevealed,
-								"[npc.Name] [npc.verb(try)] to make a move as [npc2.namePos] [npc2.asshole+] is revealed, but [npc.her] cocoon's strong webbing keeps [npc.herHim] locked in place.");
-					case TAIL_CONSTRICTION:
-						return UtilText.parse(Util.newArrayListOfValues(characterReacting, characterBeingRevealed, immobilisation.getValue()),
-								"[npc.Name] [npc.verb(try)] to make a move as [npc2.namePos] [npc2.asshole+] is revealed, but [npc3.name] [npc3.verb(use)] [npc3.her] long tail to keep [npc.herHim] constricted and firmly locked in place.");
-					case TENTACLE_RESTRICTION:
-						return UtilText.parse(Util.newArrayListOfValues(characterReacting, characterBeingRevealed, immobilisation.getValue()),
-								"[npc.Name] [npc.verb(try)] to make a move as [npc2.namePos] [npc2.asshole+] is revealed, but [npc3.name] [npc3.verb(use)] [npc3.her] [npc3.tentacles] to keep [npc.herHim] firmly held in place.");
-					case WITCH_SEAL:
-						return UtilText.parse(characterReacting, characterBeingRevealed,
-								"[npc.Name] [npc.verb(try)] to make a move as [npc2.namePos] [npc2.asshole+] is revealed, but the Witch's Seal keeps [npc.herHim] locked in place.");
-					case COMMAND:
-						return UtilText.parse(characterReacting, characterBeingRevealed,
-								"[npc.Name] [npc.verb(remain)] completely motionless and doesn't react as [npc2.namePos] [npc2.asshole+] is revealed.");
-					case SLEEP:
-						return UtilText.parse(characterReacting, characterBeingRevealed,
-								"[npc.Name] [npc.verb(remain)] asleep and thus unable to react as  [npc2.namePos] [npc2.asshole+] is revealed.");
-				}
-			}
+
+		if(Main.game.isInSex() && Main.sex.isCharacterImmobilised(characterReacting)) {
+			return getAreaRevealWhileImmobilised(characterBeingRevealed, characterReacting, "[npc2.asshole+]", false);
 		}
 		
-		return sb.toString();
+		if(characterBeingRevealed.isPlayer()) {
+			switch(reactingPace) {
+				case DOM_GENTLE:
+					return UtilText.parse(characterReacting, "[npc.Name] lets out a soft [npc.moan] as your [pc.asshole+] is revealed.");
+				case DOM_NORMAL:
+					return UtilText.parse(characterReacting, "[npc.Name] lets out [npc.a_moan+] as your [pc.asshole+] is revealed.");
+				case DOM_ROUGH:
+					return UtilText.parse(characterReacting, "[npc.Name] lets out a hungry growl as your [pc.asshole+] is revealed.");
+				case SUB_EAGER:
+					return UtilText.parse(characterReacting, "[npc.Name] lets out [npc.a_moan+] as your [pc.asshole+] is revealed.");
+				case SUB_NORMAL:
+					return UtilText.parse(characterReacting, "[npc.Name] lets out [npc.a_moan] as your [pc.asshole+] is revealed.");
+				case SUB_RESISTING:
+					return UtilText.parse(characterReacting, "[npc.Name] lets out [npc.a_sob+] as your [pc.asshole+] is revealed.");
+				default:
+					return UtilText.parse(characterReacting, "[npc.Name] lets out [npc.a_moan] as your [pc.asshole+] is revealed.");
+			}
+		}
+		return "";
 	}
 
 	public String getBreastsRevealDescription(GameCharacter characterBeingRevealed, GameCharacter characterReacting) {
@@ -15701,27 +15689,7 @@ public abstract class GameCharacter implements XMLSaving {
 		
 		if(characterBeingRevealed.isPlayer()) {
 			if(Main.game.isInSex() && Main.sex.isCharacterImmobilised(characterReacting)) {
-				Value<ImmobilisationType, GameCharacter> immobilisation = Main.sex.getImmobilisationType(characterReacting);
-				switch(immobilisation.getKey()) {
-					case CHAINS:
-						return UtilText.parse(characterReacting, "[npc.Name] [npc.verb(try)] to make a move as your [pc.breasts+] are revealed, but the chains binding [npc.her] body in place keep [npc.herHim] immobilised.");
-					case ROPE:
-						return UtilText.parse(characterReacting, "[npc.Name] [npc.verb(try)] to make a move as your [pc.breasts+] are revealed, but the ropes binding [npc.her] body in place keep [npc.herHim] immobilised.");
-					case COCOON:
-						return UtilText.parse(characterReacting, "[npc.Name] tries to make a move as your [pc.breasts+] are revealed, but [npc.her] cocoon's strong webbing keeps [npc.herHim] locked in place.");
-					case TAIL_CONSTRICTION:
-						return UtilText.parse(characterReacting, immobilisation.getValue(),
-								"[npc.Name] tries to make a move as your [pc.breasts+] are revealed, but [npc2.name] [npc2.verb(use)] [npc2.her] long tail to keep [npc.herHim] constricted and firmly locked in place.");
-					case TENTACLE_RESTRICTION:
-						return UtilText.parse(characterReacting, immobilisation.getValue(),
-								"[npc.Name] tries to make a move as your [pc.breasts+] are revealed, but [npc2.name] [npc2.verb(use)] [npc2.her] [npc2.tentacles] to keep [npc.herHim] firmly held in place.");
-					case WITCH_SEAL:
-						return UtilText.parse(characterReacting, "[npc.Name] tries to make a move as your [pc.breasts+] are revealed, but the Witch's Seal keeps [npc.herHim] locked in place.");
-					case COMMAND:
-						return UtilText.parse(characterReacting, "[npc.Name] [npc.verb(remain)] completely motionless and doesn't react as your [pc.breasts+] are revealed.");
-					case SLEEP:
-						return UtilText.parse(characterReacting, "[npc.Name] [npc.verb(remain)] asleep and thus unable to react as your [pc.breasts] are revealed.");
-				}
+				return getAreaRevealWhileImmobilised(characterBeingRevealed, characterReacting, "[npc2.breasts+]", true);
 			}
 			
 			StringBuilder sb = new StringBuilder();
@@ -15946,33 +15914,7 @@ public abstract class GameCharacter implements XMLSaving {
 			
 		} else {
 			if(Main.game.isInSex() && Main.sex.isCharacterImmobilised(characterReacting)) {
-				Value<ImmobilisationType, GameCharacter> immobilisation = Main.sex.getImmobilisationType(characterReacting);
-				switch(immobilisation.getKey()) {
-					case CHAINS:
-						return UtilText.parse(characterReacting, characterBeingRevealed,
-								"[npc.Name] [npc.verb(try)] to make a move as [npc2.namePos] [npc2.breasts+] are revealed, but the chains binding [npc.her] body in place keep [npc.herHim] immobilised.");
-					case ROPE:
-						return UtilText.parse(characterReacting, characterBeingRevealed,
-								"[npc.Name] [npc.verb(try)] to make a move as [npc2.namePos] [npc2.breasts+] are revealed, but the ropes binding [npc.her] body in place keep [npc.herHim] immobilised.");
-					case COCOON:
-						return UtilText.parse(characterReacting, characterBeingRevealed,
-								"[npc.Name] [npc.verb(try)] to make a move as [npc2.namePos] [npc2.breasts+] are revealed, but [npc.her] cocoon's strong webbing keeps [npc.herHim] locked in place.");
-					case TAIL_CONSTRICTION:
-						return UtilText.parse(Util.newArrayListOfValues(characterReacting, characterBeingRevealed, immobilisation.getValue()),
-								"[npc.Name] tries to make a move as [npc2.namePos] [npc2.breasts+] are revealed, but [npc3.name] [npc3.verb(use)] [npc3.her] long tail to keep [npc.herHim] constricted and firmly locked in place.");
-					case TENTACLE_RESTRICTION:
-						return UtilText.parse(Util.newArrayListOfValues(characterReacting, characterBeingRevealed, immobilisation.getValue()),
-								"[npc.Name] tries to make a move as [npc2.namePos] [npc2.breasts+] are revealed, but [npc3.name] [npc3.verb(use)] [npc3.her] [npc3.tentacles] to keep [npc.herHim] firmly held in place.");
-					case WITCH_SEAL:
-						return UtilText.parse(characterReacting, characterBeingRevealed,
-								"[npc.Name] [npc.verb(try)] to make a move as [npc2.namePos] [npc2.breasts+] are revealed, but the Witch's Seal keeps [npc.herHim] locked in place.");
-					case COMMAND:
-						return UtilText.parse(characterReacting, characterBeingRevealed,
-								"[npc.Name] [npc.verb(remain)] completely motionless and doesn't react as [npc2.namePos] [npc2.breasts+] are revealed.");
-					case SLEEP:
-						return UtilText.parse(characterReacting, characterBeingRevealed,
-								"[npc.Name] [npc.verb(remain)] asleep and thus unable to react as [npc2.namePos] [npc2.breasts+] are revealed.");
-				}
+				return getAreaRevealWhileImmobilised(characterBeingRevealed, characterReacting, "[npc2.breasts+]", true);
 			}
 			return "";
 		}
@@ -15992,27 +15934,7 @@ public abstract class GameCharacter implements XMLSaving {
 		
 		if(characterBeingRevealed.equals(npcReacting)) {
 			if(Main.game.isInSex() && Main.sex.isCharacterImmobilised(characterReacting)) {
-				Value<ImmobilisationType, GameCharacter> immobilisation = Main.sex.getImmobilisationType(characterReacting);
-				switch(immobilisation.getKey()) {
-					case CHAINS:
-						return UtilText.parse(characterReacting, "[npc.Name] [npc.verb(try)] to make a move as [npc.her] [npc.crotchBoobs+] are revealed, but the chains binding [npc.her] body in place keep [npc.herHim] immobilised.");
-					case ROPE:
-						return UtilText.parse(characterReacting, "[npc.Name] [npc.verb(try)] to make a move as [npc.her] [npc.crotchBoobs+] are revealed, but the ropes binding [npc.her] body in place keep [npc.herHim] immobilised.");
-					case COCOON:
-						return UtilText.parse(characterReacting, "[npc.Name] tries to make a move as [npc.her] [npc.crotchBoobs+] are revealed, but [npc.her] cocoon's strong webbing keeps [npc.herHim] locked in place.");
-					case TAIL_CONSTRICTION:
-						return UtilText.parse(characterReacting, immobilisation.getValue(),
-								"[npc.Name] tries to make a move as [npc.her] [npc.crotchBoobs+] are revealed, but [npc2.name] [npc2.verb(use)] [npc2.her] long tail to keep [npc.herHim] constricted and firmly locked in place.");
-					case TENTACLE_RESTRICTION:
-						return UtilText.parse(characterReacting, immobilisation.getValue(),
-								"[npc.Name] tries to make a move as [npc.her] [npc.crotchBoobs+] are revealed, but [npc2.name] [npc2.verb(use)] [npc2.her] [npc2.tentacles] to keep [npc.herHim] firmly held in place.");
-					case WITCH_SEAL:
-						return UtilText.parse(characterReacting, "[npc.Name] tries to make a move as [npc.her] [npc.crotchBoobs+] are revealed, but the Witch's Seal keeps [npc.herHim] locked in place.");
-					case COMMAND:
-						return UtilText.parse(characterReacting, "[npc.Name] [npc.verb(remain)] completely motionless and doesn't react as [npc.her] [npc.crotchBoobs+] are revealed.");
-					case SLEEP:
-						return UtilText.parse(characterReacting, "[npc.Name] [npc.verb(remain)] asleep and thus unable to react as your [pc.crotchBoobs+] are revealed.");
-				}
+				return getAreaRevealWhileImmobilised(characterBeingRevealed, characterReacting, "[npc2.crotchBoobs+]", true);
 			}
 			
 			switch(reactingPace) {
@@ -16038,33 +15960,7 @@ public abstract class GameCharacter implements XMLSaving {
 			
 		} else {
 			if(Main.game.isInSex() && Main.sex.isCharacterImmobilised(characterReacting)) {
-				Value<ImmobilisationType, GameCharacter> immobilisation = Main.sex.getImmobilisationType(characterReacting);
-				switch(immobilisation.getKey()) {
-					case CHAINS:
-						return UtilText.parse(characterReacting, characterBeingRevealed,
-								"[npc.Name] [npc.verb(try)] to make a move as [npc2.namePos] [npc2.crotchBoobs+] are revealed, but the chains binding [npc.her] body in place keep [npc.herHim] immobilised.");
-					case ROPE:
-						return UtilText.parse(characterReacting, characterBeingRevealed,
-								"[npc.Name] [npc.verb(try)] to make a move as [npc2.namePos] [npc2.crotchBoobs+] are revealed, but the ropes binding [npc.her] body in place keep [npc.herHim] immobilised.");
-					case COCOON:
-						return UtilText.parse(characterReacting, characterBeingRevealed,
-								"[npc.Name] [npc.verb(try)] to make a move as [npc2.namePos] [npc2.crotchBoobs+] are revealed, but [npc.her] cocoon's strong webbing keeps [npc.herHim] locked in place.");
-					case TAIL_CONSTRICTION:
-						return UtilText.parse(Util.newArrayListOfValues(characterReacting, characterBeingRevealed, immobilisation.getValue()),
-								"[npc.Name] tries to make a move as [npc2.namePos] [npc2.crotchBoobs+] are revealed, but [npc3.name] [npc3.verb(use)] [npc3.her] long tail to keep [npc.herHim] constricted and firmly locked in place.");
-					case TENTACLE_RESTRICTION:
-						return UtilText.parse(Util.newArrayListOfValues(characterReacting, characterBeingRevealed, immobilisation.getValue()),
-								"[npc.Name] tries to make a move as [npc2.namePos] [npc2.crotchBoobs+] are revealed, but [npc3.name] [npc3.verb(use)] [npc3.her] [npc3.tentacles] to keep [npc.herHim] firmly held in place.");
-					case WITCH_SEAL:
-						return UtilText.parse(characterReacting, characterBeingRevealed,
-								"[npc.Name] [npc.verb(try)] to make a move as [npc2.namePos] [npc2.crotchBoobs+] are revealed, but the Witch's Seal keeps [npc.herHim] locked in place.");
-					case COMMAND:
-						return UtilText.parse(characterReacting, characterBeingRevealed,
-								"[npc.Name] [npc.verb(remain)] completely motionless and doesn't react as [npc2.namePos] [npc2.crotchBoobs+] are revealed.");
-					case SLEEP:
-						return UtilText.parse(characterReacting, characterBeingRevealed,
-								"[npc.Name] [npc.verb(remain)] asleep and thus unable to react as [npc2.namePos] [npc2.crotchBoobs+] are revealed.");
-				}
+				return getAreaRevealWhileImmobilised(characterBeingRevealed, characterReacting, "[npc2.crotchBoobs+]", true);
 			}
 			
 			switch(reactingPace) {
@@ -16104,32 +16000,7 @@ public abstract class GameCharacter implements XMLSaving {
 		}
 		
 		if(Main.game.isInSex() && Main.sex.isCharacterImmobilised(characterReacting)) {
-			Value<ImmobilisationType, GameCharacter> immobilisation = Main.sex.getImmobilisationType(characterReacting);
-			switch(immobilisation.getKey()) {
-				case CHAINS:
-					return UtilText.parse(characterReacting, characterBeingRevealed,
-							"[npc.Name] [npc.verb(try)] to make a move as [npc2.namePos] [npc2.cock+] is revealed, but the chains binding [npc.her] body in place keep [npc.herHim] immobilised.");
-				case ROPE:
-					return UtilText.parse(characterReacting, characterBeingRevealed,
-							"[npc.Name] [npc.verb(try)] to make a move as [npc2.namePos] [npc2.cock+] is revealed, but the ropes binding [npc.her] body in place keep [npc.herHim] immobilised.");
-				case COCOON:
-					return UtilText.parse(characterReacting, characterBeingRevealed,
-							"[npc.Name] [npc.verb(try)] to make a move as [npc2.namePos] [npc2.cock+] is revealed, but [npc.her] cocoon's strong webbing keeps [npc.herHim] locked in place.");
-				case TAIL_CONSTRICTION:
-					return UtilText.parse(Util.newArrayListOfValues(characterReacting, characterBeingRevealed, immobilisation.getValue()),
-							"[npc.Name] tries to make a move as [npc2.namePos] [npc2.cock+] is revealed, but [npc3.name] [npc3.verb(use)] [npc3.her] long tail to keep [npc.herHim] constricted and firmly locked in place.");
-				case TENTACLE_RESTRICTION:
-					return UtilText.parse(Util.newArrayListOfValues(characterReacting, characterBeingRevealed, immobilisation.getValue()),
-							"[npc.Name] tries to make a move as [npc2.namePos] [npc2.cock+] is revealed, but [npc3.name] [npc3.verb(use)] [npc3.her] [npc3.tentacles] to keep [npc.herHim] firmly held in place.");
-				case WITCH_SEAL:
-					return UtilText.parse(characterReacting, characterBeingRevealed,
-							"[npc.Name] [npc.verb(try)] to make a move as [npc2.namePos] [npc2.cock+] is revealed, but the Witch's Seal keeps [npc.herHim] locked in place.");
-				case COMMAND:
-					return UtilText.parse(characterReacting, characterBeingRevealed,
-							"[npc.Name] [npc.verb(remain)] completely motionless and doesn't react as [npc2.namePos] [npc2.cock+] is revealed.");
-				case SLEEP:
-					return UtilText.parse(characterReacting, "[npc.Name] [npc.verb(remain)] asleep and thus unable to react as your [pc.cock+] is revealed.");
-			}
+			return getAreaRevealWhileImmobilised(characterBeingRevealed, characterReacting, "[npc2.cock+]", false);
 		}
 		
 		StringBuilder sb = new StringBuilder();
@@ -16466,33 +16337,7 @@ public abstract class GameCharacter implements XMLSaving {
 		}
 
 		if(Main.game.isInSex() && Main.sex.isCharacterImmobilised(characterReacting)) {
-			Value<ImmobilisationType, GameCharacter> immobilisation = Main.sex.getImmobilisationType(characterReacting);
-			switch(immobilisation.getKey()) {
-				case CHAINS:
-					return UtilText.parse(characterReacting, characterBeingRevealed,
-							"[npc.Name] [npc.verb(try)] to make a move as [npc2.namePos] [npc2.pussy+] is revealed, but the chains binding [npc.her] body in place keep [npc.herHim] immobilised.");
-				case ROPE:
-					return UtilText.parse(characterReacting, characterBeingRevealed,
-							"[npc.Name] [npc.verb(try)] to make a move as [npc2.namePos] [npc2.pussy+] is revealed, but the ropes binding [npc.her] body in place keep [npc.herHim] immobilised.");
-				case COCOON:
-					return UtilText.parse(characterReacting, characterBeingRevealed,
-							"[npc.Name] [npc.verb(try)] to make a move as [npc2.namePos] [npc2.pussy+] is revealed, but [npc.her] cocoon's strong webbing keeps [npc.herHim] locked in place.");
-				case TAIL_CONSTRICTION:
-					return UtilText.parse(Util.newArrayListOfValues(characterReacting, characterBeingRevealed, immobilisation.getValue()),
-							"[npc.Name] tries to make a move as [npc2.namePos] [npc2.pussy+] is revealed, but [npc3.name] [npc3.verb(use)] [npc3.her] long tail to keep [npc.herHim] constricted and firmly locked in place.");
-				case TENTACLE_RESTRICTION:
-					return UtilText.parse(Util.newArrayListOfValues(characterReacting, characterBeingRevealed, immobilisation.getValue()),
-							"[npc.Name] tries to make a move as [npc2.namePos] [npc2.pussy+] is revealed, but [npc3.name] [npc3.verb(use)] [npc3.her] [npc3.tentacles] to keep [npc.herHim] firmly held in place.");
-				case WITCH_SEAL:
-					return UtilText.parse(characterReacting, characterBeingRevealed,
-							"[npc.Name] [npc.verb(try)] to make a move as [npc2.namePos] [npc2.pussy+] is revealed, but the Witch's Seal keeps [npc.herHim] locked in place.");
-				case COMMAND:
-					return UtilText.parse(characterReacting, characterBeingRevealed,
-							"[npc.Name] [npc.verb(remain)] completely motionless and doesn't react as [npc2.namePos] [npc2.pussy+] is revealed.");
-				case SLEEP:
-					return UtilText.parse(characterReacting, characterBeingRevealed,
-							"[npc.Name] [npc.verb(remain)] asleep and thus unable to react as [npc2.namePos] [npc2.pussy+] is revealed.");
-			}
+			return getAreaRevealWhileImmobilised(characterBeingRevealed, characterReacting, "[npc2.pussy+]", false);
 		}
 		
 		StringBuilder sb = new StringBuilder();
@@ -16633,33 +16478,7 @@ public abstract class GameCharacter implements XMLSaving {
 		}
 
 		if(Main.game.isInSex() && Main.sex.isCharacterImmobilised(characterReacting)) {
-			Value<ImmobilisationType, GameCharacter> immobilisation = Main.sex.getImmobilisationType(characterReacting);
-			switch(immobilisation.getKey()) {
-				case CHAINS:
-					return UtilText.parse(characterReacting, characterBeingRevealed,
-							"[npc.Name] [npc.verb(try)] to make a move as [npc2.namePos] genderless mound is revealed, but the chains binding [npc.her] body in place keep [npc.herHim] immobilised.");
-				case ROPE:
-					return UtilText.parse(characterReacting, characterBeingRevealed,
-							"[npc.Name] [npc.verb(try)] to make a move as [npc2.namePos] genderless mound is revealed, but the ropes binding [npc.her] body in place keep [npc.herHim] immobilised.");
-				case COCOON:
-					return UtilText.parse(characterReacting, characterBeingRevealed,
-							"[npc.Name] [npc.verb(try)] to make a move as [npc2.namePos] genderless mound is revealed, but [npc.her] cocoon's strong webbing keeps [npc.herHim] locked in place.");
-				case TAIL_CONSTRICTION:
-					return UtilText.parse(Util.newArrayListOfValues(characterReacting, characterBeingRevealed, immobilisation.getValue()),
-							"[npc.Name] tries to make a move as [npc2.namePos] genderless mound is revealed, but [npc3.name] [npc3.verb(use)] [npc3.her] long tail to keep [npc.herHim] constricted and firmly locked in place.");
-				case TENTACLE_RESTRICTION:
-					return UtilText.parse(Util.newArrayListOfValues(characterReacting, characterBeingRevealed, immobilisation.getValue()),
-							"[npc.Name] tries to make a move as [npc2.namePos] genderless mound is revealed, but [npc3.name] [npc3.verb(use)] [npc3.her] [npc3.tentacles] to keep [npc.herHim] firmly held in place.");
-				case WITCH_SEAL:
-					return UtilText.parse(characterReacting, characterBeingRevealed,
-							"[npc.Name] [npc.verb(try)] to make a move as [npc2.namePos] genderless mound is revealed, but the Witch's Seal keeps [npc.herHim] locked in place.");
-				case COMMAND:
-					return UtilText.parse(characterReacting, characterBeingRevealed,
-							"[npc.Name] [npc.verb(remain)] completely motionless and doesn't react as [npc2.namePos] genderless mound is revealed.");
-				case SLEEP:
-					return UtilText.parse(characterReacting, characterBeingRevealed,
-							"[npc.Name] [npc.verb(remain)] asleep and thus unable to react as [npc2.namePos] genderless mound is revealed.");
-			}
+			return getAreaRevealWhileImmobilised(characterBeingRevealed, characterReacting, "genderless mound", false);
 		}
 		
 		StringBuilder sb = new StringBuilder();
@@ -16703,7 +16522,7 @@ public abstract class GameCharacter implements XMLSaving {
 	// Penetrations:
 	
 	private static String generateGenericPenetrationDescription(GameCharacter characterPenetrating, SexAreaPenetration penetrationType, GameCharacter characterPenetrated, SexAreaInterface orifice) {
-		boolean immobile = Main.sex.isCharacterImmobilised(characterPenetrating) && Main.sex.getImmobilisationType(characterPenetrating).getKey()==ImmobilisationType.COMMAND;
+		boolean immobile = Main.sex.isCharacterImmobilised(characterPenetrating) && Main.sex.isCharacterInanimateFromImmobilisation(characterPenetrating);
 		
 		// Kissing:
 		if(penetrationType == SexAreaPenetration.TONGUE && orifice == SexAreaOrifice.MOUTH) {
@@ -17239,7 +17058,7 @@ public abstract class GameCharacter implements XMLSaving {
 		
 		String ownerName = characterPenetrating.equals(characterPenetrated)?"[npc2.her]":"[npc2.namePos]";
 
-		boolean immobile = Main.sex.isCharacterImmobilised(characterPenetrating) && Main.sex.getImmobilisationType(characterPenetrating).getKey()==ImmobilisationType.COMMAND;
+		boolean immobile = Main.sex.isCharacterImmobilised(characterPenetrating) && Main.sex.isCharacterInanimateFromImmobilisation(characterPenetrating);
 		if(immobile) {
 			if(characterPenetrating.isAsleep()) {
 				return UtilText.parse(characterPenetrating, characterPenetrated,
@@ -17260,7 +17079,12 @@ public abstract class GameCharacter implements XMLSaving {
 	
 	public boolean isWantingToFullyPenetrate(GameCharacter target) {
 		if(Main.game.isInSex()) {
-			return (Main.sex.getSexPace(this)==SexPace.DOM_ROUGH && !target.equals(this)) || Objects.equals(Main.sex.getCharacterKnotting(this), target) || target.isWantingToBeFullyPenetrated(this);
+			if(target.isAsleep()) {
+				return false;
+			}
+			return (Main.sex.getSexPace(this)==SexPace.DOM_ROUGH && !target.equals(this))
+					|| Objects.equals(Main.sex.getCharacterKnotting(this), target)
+					|| target.isWantingToBeFullyPenetrated(this);
 		}
 		return (this.hasFetish(Fetish.FETISH_SADIST) && !target.equals(this)) || target.isWantingToBeFullyPenetrated(this);
 	}
@@ -17468,9 +17292,9 @@ public abstract class GameCharacter implements XMLSaving {
 		
 		boolean feelsKnot = orifice.isOrifice() && ((SexAreaOrifice)orifice).isInternalOrifice() && characterPenetrating.isFullPenetrationTooShort(penetrationType, characterPenetrated, (SexAreaOrifice)orifice);
 
-		boolean immobilePenetrating = Main.sex.isCharacterImmobilised(characterPenetrating) && Main.sex.getImmobilisationType(characterPenetrating).getKey()==ImmobilisationType.COMMAND;
+		boolean immobilePenetrating = Main.sex.isCharacterImmobilised(characterPenetrating) && Main.sex.isCharacterInanimateFromImmobilisation(characterPenetrating);
 		boolean sleepingPenetrating = characterPenetrating.isAsleep();
-		boolean immobilePenetrated = Main.sex.isCharacterImmobilised(characterPenetrated) && Main.sex.getImmobilisationType(characterPenetrated).getKey()==ImmobilisationType.COMMAND;
+		boolean immobilePenetrated = Main.sex.isCharacterImmobilised(characterPenetrated) && Main.sex.isCharacterInanimateFromImmobilisation(characterPenetrated);
 		boolean sleepingPenetrated = characterPenetrated.isAsleep();
 		
 		if(penetrationType == SexAreaPenetration.FINGER && orifice == SexAreaPenetration.PENIS) {
@@ -18225,9 +18049,9 @@ public abstract class GameCharacter implements XMLSaving {
 		
 		boolean knotting = penetrationType==SexAreaPenetration.PENIS && Main.game.isInSex() && Objects.equals(Main.sex.getCharacterKnotting(characterPenetrating), characterPenetrated);
 
-		boolean immobile = Main.sex.isCharacterImmobilised(characterPenetrating) && Main.sex.getImmobilisationType(characterPenetrating).getKey()==ImmobilisationType.COMMAND;
+		boolean immobile = Main.sex.isCharacterImmobilised(characterPenetrating) && Main.sex.isCharacterInanimateFromImmobilisation(characterPenetrating);
 		boolean sleeping = characterPenetrating.isAsleep();
-		boolean immobile2 = Main.sex.isCharacterImmobilised(characterPenetrated) && Main.sex.getImmobilisationType(characterPenetrated).getKey()==ImmobilisationType.COMMAND;
+		boolean immobile2 = Main.sex.isCharacterImmobilised(characterPenetrated) && Main.sex.isCharacterInanimateFromImmobilisation(characterPenetrated);
 		boolean sleeping2 = characterPenetrated.isAsleep();
 		
 		if(!Main.game.isInSex() || Main.sex.isDom(characterPenetrating)) { // The character doing the penetrating is the dom:
@@ -18312,7 +18136,12 @@ public abstract class GameCharacter implements XMLSaving {
 					sb.append(" to comfortably accommodate the full length of [npc.her] "+nameLength+".");
 				}
 				// Core penetration information is displayed last:
-				sb.append("<br/>[style.italicsBad([npc.Name] [npc.is] holding back and only inserting [style.sizeShort("+comfortable+")] of [npc.her] "+name+" so as not to cause [npc2.name] discomfort!)]");
+				sb.append("<br/>[style.italicsBad([npc.Name] [npc.is] holding back and only inserting [style.sizeShort("+comfortable+")] of [npc.her] "+name);
+				if(sleeping2) {
+					sb.append(" so as not to wake [npc2.name] up!)]");
+				} else {
+					sb.append(" so as not to cause [npc2.name] discomfort!)]");
+				}
 				
 				
 			} else {
@@ -18330,7 +18159,9 @@ public abstract class GameCharacter implements XMLSaving {
 							+(internalOrifice==SexAreaOrifice.MOUTH?"down":"into")+" [npc2.her] "+orificeName+"!");
 					
 					
-				} else if(characterPenetrated.hasFetish(Fetish.FETISH_SIZE_QUEEN) && Main.sex.getSexPace(characterPenetrated)!=SexPace.SUB_RESISTING) {
+				} else if(characterPenetrated.hasFetish(Fetish.FETISH_SIZE_QUEEN)
+						&& Main.sex.getSexPace(characterPenetrated)!=SexPace.SUB_RESISTING
+						&& !immobile2) {
 					if(internalOrifice==SexAreaOrifice.MOUTH) {
 						sb.append("Encouraged by [npc2.namePos] eager [npc2.moans] betraying the fact that [npc2.sheIsFull] a "+Fetish.FETISH_SIZE_QUEEN.getName(characterPenetrated)
 									+ ", [npc.name] [npc.verb(thrust)] [npc.her] "+name+" [style.italicsMinorGood(as deep as physically possible)] down [npc2.her] "+orificeName+"!");
@@ -18633,7 +18464,7 @@ public abstract class GameCharacter implements XMLSaving {
 		
 		String orificeName = orifice.getName(characterPenetrated);
 
-		boolean immobilePenetrated = Main.sex.isCharacterImmobilised(characterPenetrated) && Main.sex.getImmobilisationType(characterPenetrated).getKey()==ImmobilisationType.COMMAND;
+		boolean immobilePenetrated = Main.sex.isCharacterImmobilised(characterPenetrated) && Main.sex.isCharacterInanimateFromImmobilisation(characterPenetrated);
 		
 		if(internalOrifice==SexAreaOrifice.MOUTH) {
 			orificeName = "throat";
@@ -19029,7 +18860,9 @@ public abstract class GameCharacter implements XMLSaving {
 	}
 
 	public String getStretchingFinishedDescription(SexAreaOrifice orifice) {
-		boolean immobile = Main.sex.getAllParticipants().contains(this) && Main.sex.isCharacterImmobilised(this) && Main.sex.getImmobilisationType(this).getKey()==ImmobilisationType.COMMAND;
+		boolean immobile = Main.sex.getAllParticipants().contains(this)
+				&& Main.sex.isCharacterImmobilised(this)
+				&& (Main.sex.getImmobilisationTypes(this).containsKey(ImmobilisationType.COMMAND) || Main.sex.getImmobilisationTypes(this).containsKey(ImmobilisationType.SLEEP));
 		
 		String prefix = "[npc.Name] [npc.verb(let)] out [npc.a_moan+]";
 		if(immobile) {
@@ -19186,7 +19019,7 @@ public abstract class GameCharacter implements XMLSaving {
 		boolean found = false;
 		
 		if((orificeIngestedThrough.equals(SexAreaOrifice.VAGINA) || orificeIngestedThrough.equals(SexAreaOrifice.URETHRA_VAGINA)) && this.isVisiblyPregnant()) { // Limit intake based on 250ml max for pregnant characters:
-			millilitres = Math.min(millilitres, 250-this.getTotalFluidInArea(orificeIngestedThrough));
+			millilitres = Math.min(millilitres, Body.MAXIMUM_CREAMPIE_WHILE_PREGNANT-this.getTotalFluidInArea(orificeIngestedThrough));
 		}
 		
 		FluidStored newFluid;
@@ -28138,6 +27971,7 @@ public abstract class GameCharacter implements XMLSaving {
 			}
 			// Spinneret:
 			boolean hadSpinneret = this.hasSpinneret();
+			AbstractTailType originalTail = this.getTailType();
 			if(!hadSpinneret) {
 				this.setTailType(TailType.getTailTypeFromId("charisma_spider_tail"));
 			}
@@ -28146,7 +27980,7 @@ public abstract class GameCharacter implements XMLSaving {
 			this.setSpinneretPlasticity(OrificePlasticity.ZERO_RUBBERY.getValue());
 			this.setSpinneretWetness(Wetness.THREE_WET.getValue());
 			if(!hadSpinneret) {
-				this.setTailType(TailType.NONE);
+				this.setTailType(originalTail);
 			}
 			
 			// *** Other:*** //

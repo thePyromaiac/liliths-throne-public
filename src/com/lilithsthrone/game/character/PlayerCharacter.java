@@ -1124,7 +1124,10 @@ public class PlayerCharacter extends GameCharacter implements XMLSaving {
 	}
 	
 	public boolean isAbleToAccessRoomManagement() {
-		return isHasSlaverLicense() || isQuestCompleted(QuestLine.SIDE_ACCOMMODATION);
+		return isHasSlaverLicense()
+				|| isQuestCompleted(QuestLine.SIDE_ACCOMMODATION)
+				|| isQuestCompleted(QuestLine.SIDE_DOLL_STORAGE)
+				;
 	}
 
 	/**
@@ -1854,7 +1857,9 @@ public class PlayerCharacter extends GameCharacter implements XMLSaving {
 			return UtilText.parseFromXMLFile("characters/player/virginity", "VIRGINITY_LOSS_PURE_SELF", characterPenetrating);
 			
 		} else {
-			boolean immobile = Main.sex.getAllParticipants().contains(this) && Main.sex.isCharacterImmobilised(this) && Main.sex.getImmobilisationType(this).getKey()==ImmobilisationType.COMMAND;
+			boolean immobile = Main.sex.getAllParticipants().contains(this)
+					&& Main.sex.isCharacterImmobilised(this)
+					&& (Main.sex.getImmobilisationTypes(this).containsKey(ImmobilisationType.COMMAND) || Main.sex.getImmobilisationTypes(this).containsKey(ImmobilisationType.SLEEP));
 			
 			if(immobile) {
 				if(this.isAsleep()) {
@@ -1879,7 +1884,9 @@ public class PlayerCharacter extends GameCharacter implements XMLSaving {
 			sb.append(UtilText.parseFromXMLFile("characters/player/virginity", "VIRGINITY_LOSS_ANAL_SELF", characterPenetrating));
 			
 		} else {
-			boolean immobile = Main.sex.getAllParticipants().contains(this) && Main.sex.isCharacterImmobilised(this) && Main.sex.getImmobilisationType(this).getKey()==ImmobilisationType.COMMAND;
+			boolean immobile = Main.sex.getAllParticipants().contains(this)
+					&& Main.sex.isCharacterImmobilised(this)
+					&& (Main.sex.getImmobilisationTypes(this).containsKey(ImmobilisationType.COMMAND) || Main.sex.getImmobilisationTypes(this).containsKey(ImmobilisationType.SLEEP));
 			
 			if((characterPenetrating instanceof NPC) && ((NPC)characterPenetrating).getSpecialPlayerVirginityLoss(characterPenetrating, penetration, this, SexAreaOrifice.ANUS)!=null) {
 				return ((NPC)characterPenetrating).getSpecialPlayerVirginityLoss(characterPenetrating, penetration, this, SexAreaOrifice.ANUS);
@@ -1932,7 +1939,9 @@ public class PlayerCharacter extends GameCharacter implements XMLSaving {
 			sb.append(UtilText.parseFromXMLFile("characters/player/virginity", "VIRGINITY_LOSS_VAGINAL_SELF", characterPenetrating));
 			
 		} else {
-			boolean immobile = Main.sex.getAllParticipants().contains(this) && Main.sex.isCharacterImmobilised(this) && Main.sex.getImmobilisationType(this).getKey()==ImmobilisationType.COMMAND;
+			boolean immobile = Main.sex.getAllParticipants().contains(this)
+					&& Main.sex.isCharacterImmobilised(this)
+					&& Main.sex.isCharacterInanimateFromImmobilisation(this);
 			
 			if((characterPenetrating instanceof NPC) && ((NPC)characterPenetrating).getSpecialPlayerVirginityLoss(characterPenetrating, penetration, this, SexAreaOrifice.VAGINA)!=null) {
 				sb.append(((NPC)characterPenetrating).getSpecialPlayerVirginityLoss(characterPenetrating, penetration, this, SexAreaOrifice.VAGINA));

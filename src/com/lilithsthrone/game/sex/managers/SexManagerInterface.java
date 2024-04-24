@@ -78,6 +78,9 @@ public interface SexManagerInterface {
 		return null;
 	}
 	
+	/**
+	 * @return Maps ImmobilisationType -> character who applied the immobilisation -> characters immobilised in this manner
+	 */
 	public default Map<ImmobilisationType, Map<GameCharacter, Set<GameCharacter>>> getStartingCharactersImmobilised() {
 		return new HashMap<>();
 	}

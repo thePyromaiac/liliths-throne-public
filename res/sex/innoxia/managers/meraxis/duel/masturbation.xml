@@ -200,6 +200,9 @@
 						<applierId><![CDATA[lilaya]]></applierId>
 						<type><![CDATA[WITCH_SEAL]]></type>
 					</startingImmobilisation>
+				Please note that you can add multiple 'startingImmobilisation' elements to make this character begin sex under the effects of multiple ImmobilisationTypes.
+					If defining multiple 'startingImmobilisation' elements, please be aware that each element must have a unique 'type'.
+					If two 'startingImmobilisation' elements have the same 'type', only one will be used at the start of sex.
 				OPTIONAL: Default is no immobilisation type applied at the start of sex.
 				PARSER: Initial -->
 			<startingImmobilisation/>

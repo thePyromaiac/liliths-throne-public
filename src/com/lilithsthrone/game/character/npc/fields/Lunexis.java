@@ -124,6 +124,12 @@ public class Lunexis extends NPC {
 		if(Main.isVersionOlderThan(Game.loadingVersion, "0.4.9.8")) {
 			this.setAge(517);
 		}
+		if(Main.isVersionOlderThan(Game.loadingVersion, "0.4.9.11")) {
+			this.setBreastRows(2);
+			this.setPiercedPenis(true);
+			this.equipClothingFromNowhere(Main.game.getItemGen().generateClothing("innoxia_piercing_penis_ring", PresetColour.CLOTHING_GOLD, false), true, this);
+			this.equipClothingFromNowhere(Main.game.getItemGen().generateClothing("innoxia_wrist_thin_bangles", PresetColour.CLOTHING_GOLD, false), InventorySlot.TAIL, true, this);
+		}
 	}
 
 	@Override
@@ -228,7 +234,7 @@ public class Lunexis extends NPC {
 		// Chest:
 		this.setNippleVirgin(false);
 		this.setBreastSize(CupSize.F.getMeasurement());
-		this.setBreastRows(3);
+		this.setBreastRows(2);
 		this.setBreastShape(BreastShape.ROUND);
 		this.setNippleSize(NippleSize.THREE_LARGE);
 		this.setAreolaeSize(AreolaeSize.THREE_LARGE);
@@ -303,8 +309,9 @@ public class Lunexis extends NPC {
 
 		this.equipClothingFromNowhere(Main.game.getItemGen().generateClothing("innoxia_head_circlet", PresetColour.CLOTHING_GOLD, false), true, this);
 		this.equipClothingFromNowhere(Main.game.getItemGen().generateClothing("innoxia_hand_wraps", PresetColour.CLOTHING_BLACK, false), true, this);
-		this.equipClothingFromNowhere(Main.game.getItemGen().generateClothing("innoxia_wrist_thin_bangles", PresetColour.CLOTHING_GOLD, false), true, this);
 		
+		this.equipClothingFromNowhere(Main.game.getItemGen().generateClothing("innoxia_wrist_thin_bangles", PresetColour.CLOTHING_GOLD, false), InventorySlot.WRIST, true, this);
+		this.equipClothingFromNowhere(Main.game.getItemGen().generateClothing("innoxia_wrist_thin_bangles", PresetColour.CLOTHING_GOLD, false), InventorySlot.TAIL, true, this);
 		
 		// Piercings:
 		
@@ -319,6 +326,9 @@ public class Lunexis extends NPC {
 		nippleChains.setSticker("third_chain", "add2");
 		this.equipClothingFromNowhere(nippleChains, true, this);
 
+		this.setPiercedPenis(true);
+		this.equipClothingFromNowhere(Main.game.getItemGen().generateClothing("innoxia_piercing_penis_ring", PresetColour.CLOTHING_GOLD, false), true, this);
+		
 		this.setPiercedTongue(true);
 		this.equipClothingFromNowhere(Main.game.getItemGen().generateClothing("innoxia_piercing_basic_barbell", PresetColour.CLOTHING_GOLD, false), true, this);
 
@@ -332,6 +342,11 @@ public class Lunexis extends NPC {
 	@Override
 	public boolean isUnique() {
 		return true;
+	}
+
+	@Override
+	public String getArtworkFolderName() {
+		return "Lunexis";
 	}
 	
 	@Override

@@ -272,6 +272,8 @@ import com.lilithsthrone.game.inventory.weapon.AbstractWeaponType;
 import com.lilithsthrone.game.inventory.weapon.WeaponType;
 import com.lilithsthrone.game.occupantManagement.MilkingRoom;
 import com.lilithsthrone.game.occupantManagement.OccupancyUtil;
+import com.lilithsthrone.game.occupantManagement.slave.SlaveJob;
+import com.lilithsthrone.game.occupantManagement.slave.SlaveJobFlag;
 import com.lilithsthrone.game.occupantManagement.slave.SlavePermission;
 import com.lilithsthrone.game.occupantManagement.slave.SlavePermissionSetting;
 import com.lilithsthrone.game.occupantManagement.slaveEvent.SlaveEvent;
@@ -2084,6 +2086,19 @@ public class Game implements XMLSaving {
 					for(int i=0; i<count-1; i++) {
 						Main.game.getPlayer().removeItemByType(ItemType.DOLL_CONSOLE);
 						Main.game.getPlayer().incrementMoney(MiscDialogue.deckCost);
+					}
+				}
+				
+
+				if(Main.isVersionOlderThan(Game.loadingVersion, "0.4.9.10")) { 
+					for(NPC npc : Main.game.getAllNPCs()) {
+						if(!npc.isSlave()) {
+							for(int i=0; i<24; i++) {
+								if(!npc.getSlaveJob(i).hasFlag(SlaveJobFlag.GUEST_CAN_WORK)) {
+									npc.setSlaveJob(i, SlaveJob.IDLE);
+								}
+							}
+						}
 					}
 				}
 				

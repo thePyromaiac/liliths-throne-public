@@ -756,6 +756,9 @@ public abstract class AbstractCombatMove {
     		} catch(Exception ex) {
 				System.err.println("CombatMove loading error: DamageType parsing not recognised! (Set to PHYSICAL)");
     		}
+    		if(dt==DamageType.UNARMED) {
+    			return DamageType.UNARMED.getParentDamageType(source, null);
+    		}
     		return dt;
     	}
 		return damageType;

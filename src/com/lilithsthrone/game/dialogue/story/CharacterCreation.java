@@ -510,7 +510,7 @@ public class CharacterCreation {
 
 				generateClothingOnFloor("innoxia_finger_ring", PresetColour.CLOTHING_SILVER);
 				generateClothingOnFloor("innoxia_neck_heart_necklace", PresetColour.CLOTHING_SILVER);
-				generateClothingOnFloor(ClothingType.WRIST_BANGLE, PresetColour.CLOTHING_SILVER);
+				generateClothingOnFloor("innoxia_wrist_bangle", PresetColour.CLOTHING_SILVER);
 				generateClothingOnFloor("innoxia_ankle_anklet", PresetColour.CLOTHING_SILVER);
 				
 				generateClothingOnFloor("innoxia_eye_glasses", PresetColour.CLOTHING_BLACK_STEEL);
@@ -572,7 +572,7 @@ public class CharacterCreation {
 				
 				generateClothingOnFloor("innoxia_torsoOver_open_front_cardigan", PresetColour.CLOTHING_BLACK);
 				
-				generateClothingOnFloor(ClothingType.WRIST_BANGLE, PresetColour.CLOTHING_GOLD);
+				generateClothingOnFloor("innoxia_wrist_bangle", PresetColour.CLOTHING_GOLD);
 				generateClothingOnFloor("innoxia_ankle_anklet", PresetColour.CLOTHING_GOLD);
 				break;
 		}

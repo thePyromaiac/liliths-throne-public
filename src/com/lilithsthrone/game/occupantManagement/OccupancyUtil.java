@@ -193,8 +193,9 @@ public class OccupancyUtil implements XMLSaving {
 	}
 	
 	public void handleSlaveRemoval(GameCharacter character) {
-		// First end the job to apply any effects
+		// First end the job to apply any effects, then reset all job hour slots to IDLE
 		character.getSlaveJob(Main.game.getHourOfDay()).applyJobEndEffects(character);
+		character.setSlaveJob24Hours(SlaveJob.IDLE);
 		
 		charactersAtJob.values().forEach(list->list.remove(character.getId()));
 		charactersResting.remove(character);
@@ -324,15 +325,16 @@ public class OccupancyUtil implements XMLSaving {
 		
 		// First need to set correct jobs and handle miscellaneous updates:
 		List<NPC> charactersToSendToWork = new ArrayList<>();
-		for(String id : this.getAllCharacters()) {
+		for(String id : getAllCharacters()) {
 			try {
 				NPC character = (NPC) Main.game.getNPCById(id);
-
-				SlaveJob currentJob = character.getSlaveJob(hour);
 				
-				if(Main.game.getPlayer().hasCompanion(character)) {
+				if(Main.game.getPlayer().hasCompanion(character)
+						|| (!character.isSlave() && character.hasJob())) {
 					continue;
 				}
+
+				SlaveJob currentJob = character.getSlaveJob(hour);
 				
 				if(character.isVisiblyPregnant() && !character.hasStatusEffect(StatusEffect.PREGNANT_3) && character.getSlavePermissionSettings().get(SlavePermission.PREGNANCY).contains(SlavePermissionSetting.PREGNANCY_MOTHERS_MILK)) {
 					ItemEffectType.MOTHERS_MILK.applyEffect(null, null, null, 0, character, character, null);
@@ -1753,7 +1755,8 @@ public class OccupancyUtil implements XMLSaving {
 					}
 				}
 				
-				if(currentJob.hasFlag(SlaveJobFlag.INTERACTION_BONDING)) {
+				if(currentJob.hasFlag(SlaveJobFlag.INTERACTION_BONDING)
+						&& (!npc.isDoll() || !slave.isDoll())) { // Two dolls should not bond with each other
 					// Generic affection event:
 					descriptions = new ArrayList<>();
 					

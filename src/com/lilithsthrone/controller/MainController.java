@@ -178,6 +178,9 @@ public class MainController implements Initializable {
 	private Tooltip tooltip;
 	private EventHandler<KeyEvent> actionKeyPressed, actionKeyReleased;
 
+	private int tooltipWidth = 0;
+	private int tooltipHeight = 0;
+	
 	// Responses:
 	public static final int RESPONSE_COUNT = 15;
 	
@@ -518,8 +521,7 @@ public class MainController implements Initializable {
 						if(event.getCode()==KeyCode.END && Main.DEBUG){
 
 							
-//							System.out.println(Main.sex.getSexPace(Main.game.getPlayer()));
-//							System.out.println(Main.sex.isSexPaceForced(Main.game.getPlayer()));
+							System.out.println(Main.game.getSavedDialogueNode()==null);
 							
 							
 //							System.out.println(Main.isVersionOlderThan(Game.loadingVersion, "0.4.8.10"));
@@ -2804,6 +2806,8 @@ public class MainController implements Initializable {
 			System.err.println("Failed to locate the tooltip sizing box!");
 			e.printStackTrace();
 		}
+		TooltipUpdateThread.cancelThreads = true;
+		Main.mainController.getTooltip().hide();
 		return height;
 	}
 	
@@ -3183,6 +3187,12 @@ public class MainController implements Initializable {
 		webviewTooltip.setMaxHeight(height);
 		tooltip.setMaxWidth(width);
 		tooltip.setMaxHeight(height);
+		tooltipWidth = width;
+		tooltipHeight = height;
+	}
+	
+	public int[] getTooltipSize() {
+		return new int[] {tooltipWidth, tooltipHeight};
 	}
 
 	public KeyboardAction getActionToBind() {

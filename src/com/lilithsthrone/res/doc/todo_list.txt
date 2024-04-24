@@ -6,79 +6,142 @@ Not everything in this file is up-to-date, and everything is subject to change a
 	
 	Patch notes:
 	
-	Tattoos:
-		Added a 'Save/Load' dialogue when customising tattoos, allowing you to save your tattoo presets and then quickly load them into other slots or onto other characters.
-		Tattoos can now be enchanted with 'creampie retention' in the same manner as clothing, and enchanted clothing or tattoos with a creampie retention enchantment now have the generic name postfix of 'of plugging' instead of 'of transformation'.
-		Added a 'Modify' button to the tattoo addition screen, allowing you to modify your current tattoos instead of having to remove and then add new ones.
-		The 'written out' tattoo counter style is now capitalised.
-		Improved the images for 'Horse-shoe' and 'Lines' tattoos, renamed 'Paw' tattoo to 'Dog paw' and improved the image, and added 'Detailed flowers' and 'Cat paw' tattoos.
+	FriendlyAlienFriend's Artwork (https://twitter.com/thealienfriend):
+		Added Lunexis artwork (with pregnant and crotch-boob variations).
+	
+	Engine/Modding:
+		Added support for multiple 'startingImmobilisation' elements per character in modded sex managers.
+		In modded combat moves, you can now use 'UNARMED' as a damage type to automatically use the correct damage type based on the attacker's body.
+	
+	Images:
+		Increased the size of the artwork images shown in characters' body overview tooltip.
+		Added several new keywords for image file names to help filter images when in-game (keywords and their behaviour can be seen in res/images/characters/modding.txt).
+	
+	Clothing:
+		Updated the 'strapless bodysuit' to use the same blocking logic as 'lowback bodysuit', which should fix some issues with NPCs struggling to displace it (such as when combined with pantyhose).
+		The 'Thin bangles' and 'Bangle' can now be worn in the tail slot as well as the wrist slot.
+		The 'Bangle' is now androgynous instead of feminine.
+		The 'strapless strap-on' now has a base rarity of 'common' instead of 'epic'.
+	
+	Combat:
+		Many special combat moves which previously did physical damage, or were incorrectly applying 'unarmed' damage, are now correctly using the appropriate damage type based on the attacker's body type or whether they're under the effects of cloak of flames.
+		The 'scratch' and 'squirrel scratch' special attacks now critically hit when the defender has no shielding.
+	
+	Sex:
+		Characters will no longer perform deep penetrations on sleeping size queens or masochists.
+		Added support for characters to be immobilised in multiple ways during sex (for example, sleeping slaves in a cell with chains will now start sex being both asleep and chained up).
+		Sleeping characters no longer lose affection towards partners at the end of sex due to non-con or failure to satisfy.
 	
 	Other:
-		Kate's womb tattoo now tracks current litter size, and she has some minor dialogue related to this when the player reacts to her pregnancy for the first time.
-		The 'D.E.C.K' item is now classed as a unique item, and after purchasing one from Saellatrix, you are unable to purchase any more. If you have more than one D.E.C.K., extras will be removed when loading into this version and the cost will be refunded.
-		The 'Nymphomaniac' perk now causes the owner to gain the 'Pent-up' and 'Chastity' status effects twice as quickly as normal.
+		The 'bonding' slave interaction event will no longer occur between two dolls (as it doesn't make sense for dolls to attempt to bond with one another).
+		The 'News' action at Dominion's central plaza now randomly shows each news variation once before being disabled (and is enabled again when leaving and re-entering the tile).
+		Lunexis now has two pairs of breasts instead of three.
+		Changed the colour and name of the default orifice-interior colour from 'fleshy-pink' to 'flesh'.
+		When debug mode is enabled, dying clothing and dying/reforging weapons no longer requires dye brushes or reforge hammers.
 	
 	Bugs:
-		Characters who have a negative desire towards the pregnancy or cum addict fetishes will no longer use the 'Finger insemination' sex actions (so Lilaya will no longer use this action and then get mad at you for impregnating her).
-		When buying a doll, Saellatrix now correctly says that your doll will be wearing a maid uniform instead of cat lingerie when confirming your choices.
-		Fixed bug where Vicky would often repeatedly react to her and the player's pregnancy as though she was seeing it for the first time.
-		Fixed incorrect tooltip descriptions and sizing for the 'Add/Remove' buttons in the tattoo management menu.
-		The tooltip for the active item in the enchantment load/save screen now works.
-		Reduced the chance for demons to have male offspring from 75% to 10%.
-		Fixed NPC transformative potion generation setting ass size instead of hip size.
-		Fixed issue where multiple characters with the 'object of desire' trait would all increase the orgasms required before satisfied, instead of this effect only being applied once as intended.
-		Fixed issue where arm wings were described in a character's body description as being large enough to allow flight when they actually weren't.
+		Parsing and typo fixes.
+		Fixed bug where guests in the mansion would always stay in their room, even if they had a job.
+		If you have an item of clothing which provides vaginal or vaginal urethra cum retention, then creampies in those orifices will be reduced to the maximum of 250mL when becoming pregnant, instead of being expelled entirely.
+		Fixed several incorrect descriptions during sex related to sleeping characters.
+		Fixed incorrect descriptions for when encouraging creampie/knot/pullout for self-penetrating characters.
+		When setting a slave free, their assigned hourly slave jobs are now reset to IDLE (and when loading into this version, guests who have an incompatible slave job assigned to an hour slot will have that job reset to IDLE).
+		Fixed issue where using a used condom on an NPC while not in sex would either not work or possibly soft-lock the game.
+		Fixed bug where a character's girlcum was being treated as musky only if their cum was musky, instead of whether or not their girlcum had the 'musky' fluid modifier.
+		Bimbo sentence parsing no longer inserts bimbo additions around noises denoted by '~' (e.g. ~Mmm!~).
+		Fixed background errors being thrown due to missing 'sexBlockedReason' elements in worldType files.
+		Fixed issue where the 'pugilist', 'elder lilin's helper', and 'sex doll' jobs were available for guests in the mansion.
+		Random NPCs will no longer be sleeping during their encounters with you, nor will your elementals sometimes be asleep.
+		Fixed issue where it was possible to have no actions available, causing you to get stuck, in Eisek's 'Confront the mob' scene.
+		Damage calculations in combat now correctly take into account the attacker's unarmed damage type.
+		Fixed the 'scold' greeting for offspring having the prostitute scene trigger for mugger offspring and vice versa.
+		Fixed issue where Submission attackers could spawn with the prostitute occupation, instead of all being muggers as intended.
+		Unlocking doll closets before obtaining a slaver license or permission to house friendly occupants now correctly grants you access to room management menus in Lilaya's mansion.
+		Fixed bug where 'Anthro Special' dolls would always spawn with no tail, even if their species should have a tail.
+		Fixed bug where if you chose to buy an 'Anthro Special' doll and proceeded to select a subspecies, then switched back to the DD or HH option, the purchased doll would be of the subspecies you originally selected instead of a default human.
+		Removed races which were incompatible with doll bodies from the list when purchasing an anthro doll from Saellatrix (e.g. snow-leopards require fluffy fur, which is unavailable for dolls).
+		Clothing enchanted with the 'cum retention' behaviour now correctly has the generic name postfix of 'plugging' instead of 'transformation'.
+		Fixed issue where clothing with the same colour patterns would sometimes not stack with one another, which was due to one or more hidden pattern colours being different.
+		
+	
+	[x] sleep sex with restrained characters appears to be bugged; the scene proceeds as if they've been awake the entire time despite never being woken
+		[x] support multiple ImmobilisationTypes
+			[x] implement change in Sex method return
+			[x] test:
+				[x] generic test
+					[x] dirty talk is available...
+					[x] waking up removes all immobilisations
+				[x] sealed position changing on altar
+		[x] external SexManager:
+			[x] Allow multiple Immobilisations
+	[x] Bimbo parsing with one word:
+		", like, ~Mmm…~" she softly moans as she turns onto her side.
+	[x] NPCs lose affection even if they didn't wake and end sex " is upset at you for failing to give her a single orgasm.​"
+	[x] occupants sex doll job
+	[x] unarmed damage checks
+	[x] check moves for unique crit requirements
+		[x] scratch -> target has no shielding
+	[x] external res moves UNARMED handling
+	[x] test horse kick TODO
+	[x] bug with how npcs are flagged in Submission. I enslaved a mugger, but his bio says he is a prostitute and his perk is that of one.
+		[x] Also found one of my offspring there, and they were also a mugger, used the scold greeting and that called them a prostitute
+	[-] When a bedroom slave has sex with my sleeping character, the game locks up when they reach climax but only with vaginal sex.
+		 Not sure if its related to pregnancy risk, as I don't reach the point to see if they chose to pull out. Doesn't seem to happen if they opt for non-vaginal or choose to receive
+	[x] unlocking dolls before slaves or friendly occupants doesn't unlock rennovations
+	[x] it seems that all dolls come tailless, but by making them quadrapedal and then back to bipedal a tail can appear in /some/ of them
+		[x] may need to reset doll body when selecting subspecies?
+	[x] When purchasing a Doll, switching options to Anthro, selecting a race, and switching back to the DD option, results in purchasing an Anthro Doll of the selected race, despite only paying for the DD option
+	[x] when ordering leopard and snow leopard dolls both of them showed up as lions
+	[x] (it isn't possible to make a doll into a snow leopard owing to the fact dolls cant be fluffy so it likely should not be listed as an option, but it is possible to make one into a leopard so why it showed up as a lion is unclear) 
+	[x] check Lunexis breast rows
+	[x] add lunexis artwork
+		[#lunexis.setLocation(pc)]
+		[#lunexis.rollForPregnancy(pc, pc.getBody(), 500, true, FERTILISATION_NORMAL, ATTRIBUTE_VIRILITY)]
+	[-] need to wrap overview tooltip text
+	[x] perhaps add 'preg' and 'crotchBoobs' as file name identifiers?
+	[x] Lunexis needs tail rings and cock piercing
+	[x] ARTWORK POSTS
+		[x] Yui art
+		[x] Lunexis art
+	
+	[] BUGS
+		[x] recent
+			[-] elemental inventory soft-locking
+			[x] strapless strapon is epic?
+			[x] crotchless thong, cow-patterned, are not stacking correctly
+			[x] debug to allow free dye
+		[] old
+	
+	[] Vanessa no foot sex?
+		[] Cunnilingus with footjob
+	
+	[] a nice QoL upgrade would be being able to go to the next or previous slave in the list without exiting the permissions menu, that way the player can quickly check the permissions (and make changes if needed) of every slave
+	
+	[] Somehow NPCs aren't being generated, 2 bug reports:
+		1. Marauder encounter in foloi fields/woods, the scene story says greater cat boy. when fight, it shows an actual greater cat boy instead of the marauder. somehow the cat boy name is always Quentin Lewis.
+			I noticed this too. Seems to just display the last encountered NPC, in that case a Marauder. Only for encounters in the overworks. (Foloi fields/woods) 
+		2. Random encounters in Elis' LARP basement softlock the scene
+	
+	[] Cell upgrade - Cum diet
+	
+	[] add HLF uniform reaction when meeting SWORD
+	
+	[] add 'tear' as a displacement option
+		[] 1 essence to repair
+		[] persist when unequipped
+		[] displaced icon to be scarlet if torn
 	
 	
-	[x] finger insemination check for NPC usage (Lilaya check)
-	[x] when buying a doll I selected the maid outfit and when confirming it resulted in being told I selected the cat stuff
-	[x] add creampie retention for tattoos as well
-		[x] 'of transformation'
+	[] ARTWORK POLL
 	
-	TATTOOS:
-		[x] Kate's womb tattoo should either have an offspring birthed counter, or a litter size counter
-			[x] reaction to it when pregnancy revealed dialogue
-		[x] make tattoos an object we can save, too? Having to apply the same shapes, colors, and text to nearly 100 slaves is a nightmare
-			[x] save dialogue
-			[x] tooltips
-			[x] functionality
-				[x] check writing text box filled in
-			[x] test loading of area limitations
-			[x] add to all tattoo dialogues
-				[x] Kate
-				[x] Penelope
-				[x] Slaves
-				[x] Character creation?
-		[x] add 'customise' button to existing tattoos instead of having to remove
-		[x] enchant UI needs to hide the 'x1' for tattoos
-		[x] counter style written out should be capitalised
-		[-] Both in self description and stat description when moving around. I have lactation enchantments on tattoos for them and they show the enchantment working on my crotch tits.
-			But the tool tip ref is not showing for them lactating.
-		[-] Make tattoo icon light up if they have tattoos
-		[-] the tattoo option for Dominant sex counter says 0, even if they've definitely had Dom sex?
-		[-] when in tattoo menu, if you then click "trade with kate", and then go back to tattoos, screen content doesn't parse
-		[-] Right panel resets when switching tattoos in slave management
-		[x] Tattoo add button always references removal
-		[] add more tattoos
-			[x] cat paw
-			[] kiss
-			[] bird
-			[] stag
-			[] lock
-			[] key
-			[] flames
-		[x] improve
-			[x] paw print (dog)
-			[x] horse shoe
-			[x] lines
-			[x] flowers -> detailed variant
-		[] merge PR1805 when github finally sends me the auth code email... -.-
-	[x] developers chat
-		[x] bugs
-		[x] make DECK a key item
-			[x] once owned, disable repeat purchase
-			[x] refund cost if have more than 1 when loading in
-	
+	[] add more tattoos
+		[] kiss
+		[] bird
+		[] stag
+		[] lock
+		[] key
+		[] flames
+	[] merge PR1805 when github finally sends me the auth code email... -.-
 	
 	[] PRs
 		[] feb 29th a nofap day because LT crashes when launched on the leap day
@@ -92,18 +155,12 @@ Not everything in this file is up-to-date, and everything is subject to change a
 	
 	[] deep sleeper suggestion
 	
-	[x] nymphomaniac slaves should become pent up much quicker than normal
-	
 	[] in prologue, Lilith should react to player sex
-	
-	ARTWORK POSTS
-		[] Yui art
-		[] Lunexis art
-	
-	[] merlin
 	
 	[] bug reports - from "Pregnancy descriptions are not consistent with type of pregnancy that I have."
 	
+	[] You added finger insemination via scooping cum. But wouldn't it be possible to do this same thing via other orifices?
+	 like a mouth full of cum then performing cunnilingus on a pussy putting some cum inside, or tribbing where one pussy full of cum is dripping cum into the other pussy
 	
 	#####################
 	
@@ -136,6 +193,12 @@ Not everything in this file is up-to-date, and everything is subject to change a
 	[] double penis modifier
 		[] sex actions
 	
+	[] mental state - already have gender identity saved so use it for this
+		[] add subspecies identity
+		[] more time spent in a body not aligned mentally changes mental state
+		[] have debuff SEs (for gender and subspecies) which reduces over time
+			[] interruptable SE events to resist or give in
+	
 	[] fluids supply/demand
 	
 	[] arcane branding iron - applies branding 'scar' at cost of essence
@@ -144,7 +207,8 @@ Not everything in this file is up-to-date, and everything is subject to change a
 		[] Can start quest after main quest where slaves are being sent to DD
 		[] Confront Saellatrix with diary
 			[] She manages to destroy the diary and tells player to leave - come back once you've learned some manners
-			[] When leave, get approached by human girl, who says her friend was kidnapped in Thinis and she knows that she was brought here. Offers help
+		[] Human intro
+			[] UPDATE: When leave, get approached by human girl, who says her friend was kidnapped in Thinis and she knows that she was brought here. Offers help
 		[] Gather proof
 			[] Sneak in to LL with girl (who can provide limited exposition)
 			[] factory mainly makes sex toys, dolls work on production lines - cheaper to use doll labour than automate
@@ -165,14 +229,20 @@ Not everything in this file is up-to-date, and everything is subject to change a
 				[] find girls' friend, now as a doll
 				[] recover documents
 				[] get admission from regretful employee
-			[] Choice at end of working with DD or the girl
-				[] If DD, girl is TF'd to doll and can have slaves converted to dolls and earn money by sending criminals to them
+			[] Choice at end of working with Saellatrix or the girl
+				[] If Saellatrix, girl is TF'd to doll and can have slaves converted to dolls and earn money by sending criminals to them
 					[] Can fuck Angelixx
 					[] If Meraxis sex unlocked, can tell her that there's someone you want her to duel (breast size comparison)
 						[] Threesome with Angelixx and Meraxis
-				[] If girl, she uses proof to get DD truth published in underground newspaper
-					[] Angelixx TF'd into a doll
-						[] Can get Sleip and Nir to fuck her in doll form
+				[] If girl, she uses proof to get truth published in newspaper
+					[] Shop closed for a month, then reopens
+						[] Choice:
+							[] Take Saellatrix's hush money deal
+								[] Angelixx TF'd into a doll
+									[] Can get Sleip and Nir to fuck her in doll form
+							[] Shut it all down
+								[] Angelixx made to take the fall, enslaved
+									[] Can get Sleip and Nir to fuck her
 		[] Get caught
 			[] turned into doll by succubus from main quest - massive essence drain, ingestion of transformed slime, and infusion of corrupted essences
 				[] if can be transformed, transformed to human
@@ -646,11 +716,6 @@ Not everything in this file is up-to-date, and everything is subject to change a
 				[] Threesome
 				[] Anal/Oral/Pussy/Foot/Armpit focus
 			[] After doing five special clients, get well-known and (rarely) be approached on street and asked to fuck
-	
-	[] add 'tear' as a displacement option
-		[] 1 essence to repair
-		[] persist when unequipped
-		[] displaced icon to be scarlet if torn
 	
 	[] Add 'corkscrew' penis modifier
 		[] And glue as a fluid mod (congealing)? IE like how pig cum hardens in contact with air to seal up the female's vagina and trap the rest of the cum inside

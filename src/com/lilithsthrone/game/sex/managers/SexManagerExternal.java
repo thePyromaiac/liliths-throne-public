@@ -252,7 +252,8 @@ public class SexManagerExternal extends SexManagerDefault {
 		public String control;
 		public SexControl controlParsed;
 		
-		public Value<String, String> startingImmobilisation;
+		/** Maps ImmobilisationType to applier ID. */
+		public Map<String, String> startingImmobilisation;
 		public Map<String, Map<String, Set<String>>> startingWetAreas;
 
 		public String orgasmBehaviour;
@@ -657,7 +658,7 @@ public class SexManagerExternal extends SexManagerDefault {
 			return controlParsed;
 		}
 
-		public Value<String, String> getStartingImmobilisation() {
+		public Map<String, String> getStartingImmobilisation() {
 			return startingImmobilisation;
 		}
 		
@@ -921,11 +922,14 @@ public class SexManagerExternal extends SexManagerDefault {
 						if(characterElement.getOptionalFirstOf("control").isPresent()) {
 							behaviour.control = characterElement.getMandatoryFirstOf("control").getTextContent();
 						}
-
+						
+						behaviour.startingImmobilisation = new HashMap<>();
 						if(elementPresentAndNotEmpty(characterElement, "startingImmobilisation")) {
-							behaviour.startingImmobilisation = new Value<>(
-									characterElement.getMandatoryFirstOf("startingImmobilisation").getMandatoryFirstOf("applierId").getTextContent(),
-									characterElement.getMandatoryFirstOf("startingImmobilisation").getMandatoryFirstOf("type").getTextContent());
+							for(Element immobilisationElement : characterElement.getAllOf("startingImmobilisation")) {
+								behaviour.startingImmobilisation.put(
+										immobilisationElement.getMandatoryFirstOf("type").getTextContent(),
+										immobilisationElement.getMandatoryFirstOf("applierId").getTextContent());
+							}
 						}
 
 						if(elementPresentAndNotEmpty(characterElement, "startingLubrications")) {
@@ -1260,11 +1264,13 @@ public class SexManagerExternal extends SexManagerDefault {
 			}
 			// Starting immobilisations:
 			if(entry.getValue().getStartingImmobilisation()!=null) {
-				ImmobilisationType type = ImmobilisationType.valueOf(UtilText.parse(entry.getValue().getStartingImmobilisation().getValue()).trim());
-				GameCharacter applier = UtilText.findFirstCharacterFromParserTarget(UtilText.parse(entry.getValue().getStartingImmobilisation().getKey()).trim());
-				startingCharactersImmobilised.putIfAbsent(type, new HashMap<>());
-				startingCharactersImmobilised.get(type).putIfAbsent(applier, new HashSet<>());
-				startingCharactersImmobilised.get(type).get(applier).add(character);
+				for(Entry<String, String> immobilisationEntry : entry.getValue().getStartingImmobilisation().entrySet()) {
+					ImmobilisationType type = ImmobilisationType.valueOf(UtilText.parse(immobilisationEntry.getKey()).trim());
+					GameCharacter applier = UtilText.findFirstCharacterFromParserTarget(UtilText.parse(immobilisationEntry.getValue()).trim());
+					startingCharactersImmobilised.putIfAbsent(type, new HashMap<>());
+					startingCharactersImmobilised.get(type).putIfAbsent(applier, new HashSet<>());
+					startingCharactersImmobilised.get(type).get(applier).add(character);
+				}
 			}
 			// Starting wet areas:
 			if(entry.getValue().getStartingWetAreas()!=null) {
