@@ -722,7 +722,7 @@ public abstract class GameCharacter implements XMLSaving {
 		addictions = new ArrayList<>();
 		psychoactiveFluidsIngested = new HashSet<>();
 		
-		// Start all attributes and bonus attributes at 0:
+		// Start all attributes at their starting value and bonus attributes at 0:
 		for(AbstractAttribute a : Attribute.getAllAttributes()) {
 			attributes.put(a, (float) a.getBaseValue());
 			bonusAttributes.put(a, 0f);
@@ -3764,31 +3764,53 @@ public abstract class GameCharacter implements XMLSaving {
 				infoScreenSB.append(".");
 			}
 		}
+
+		infoScreenSB.append("</p>");
 		
+		infoScreenSB.append("<h6>Relationships</h6>"
+				+ "<p>");
 		String relationships = this.getRelationshipStrTo(Main.game.getPlayer());
 		
 		if(!this.isRaceConcealed()) {
 			if(!this.isPlayer()) {
-				infoScreenSB.append(
-							"<br/>"
-							+ (this.getPartyLeader()!=null
-									?UtilText.parse(this, this.getPartyLeader(), "[npc.She] [npc.is] currently following [npc2.name] around as [npc2.her] [style.colourCompanion(companion)]. ")
-									:"")
-							+ (!relationships.isEmpty()
-									?UtilText.parse(this, "[npc.She] is your <span style='color:"+this.getFemininity().getColour().toWebHexString()+"'>"+relationships+"</span>. ")
-									:""));
-				
+				StringBuilder relationshipsSB = new StringBuilder();
+				if(this.getPartyLeader()!=null) {
+					relationshipsSB.append(UtilText.parse(this, this.getPartyLeader(), "[npc.She] [npc.is] currently following [npc2.name] around as [npc2.her] [style.colourCompanion(companion)]. "));
+				}
 
-				//if(!this.getAffectionMap().isEmpty()) {
+				if(!relationships.isEmpty()) {
+					if(relationshipsSB.length()>0) {
+						relationshipsSB.append("<br/>");
+					}
+					relationshipsSB.append(UtilText.parse(this, "[npc.She] is your <span style='color:"+this.getFemininity().getColour().toWebHexString()+"'>"+relationships+"</span>. "));
+				}
+
+				if(this.isPlayerKnowsName() || Main.game.isDebugMode()) {
+					for(NPC npc : Main.game.getAllNPCs()) {
+						if(this!=npc && (Main.game.getPlayer().getCharactersEncounteredAsGameCharacters(true).contains(npc) || Main.game.isDebugMode())) {
+							String relationshipToOtherNpc = this.getRelationshipStrTo(npc);
+							if(!relationshipToOtherNpc.isEmpty()) {
+								if(relationshipsSB.length()>0) {
+									relationshipsSB.append("<br/>");
+								}
+								relationshipsSB.append(UtilText.parse(this, npc, "[npc.She] is [npc2.namePos] <span style='color:"+this.getFemininity().getColour().toWebHexString()+"'>"+relationshipToOtherNpc+"</span>. "));
+							}
+						}
+					}
+				}
+				
+				if(relationshipsSB.length()>0) {
+					infoScreenSB.append(relationshipsSB.toString());
 					infoScreenSB.append("<br/>");
-				//}
+				}
+				
 				int affection = (int)this.getAffection(Main.game.getPlayer());
 				infoScreenSB.append(AffectionLevel.getDescription(this, Main.game.getPlayer(), true)+" (<span style='color:"+this.getAffectionLevel(Main.game.getPlayer()).getColour().toWebHexString()+";'>"+(affection>0?"+":"")+affection+"</span>)");
 				
 				for(Entry<String, Float> entry : this.getAffectionMap().entrySet()) {
 					try {
 						GameCharacter target = Main.game.getNPCById(entry.getKey());
-						if(Main.game.getPlayer().getCharactersEncounteredAsGameCharacters(true).contains(target)) {
+						if(Main.game.getPlayer().getCharactersEncounteredAsGameCharacters(true).contains(target) || Main.game.isDebugMode()) {
 							if(!target.isPlayer()
 									&& (target.isUnique()
 											|| (target.isElemental() && ((Elemental)target).getSummoner().isUnique())
@@ -3826,9 +3848,9 @@ public abstract class GameCharacter implements XMLSaving {
 					infoScreenSB.append(Util.stringsToStringList(slaveNames, false)+".");
 				}
 			}
+			infoScreenSB.append("</p>");
 			
-			infoScreenSB.append("<br/>"
-					+ "<h6>Personality</h6>"
+			infoScreenSB.append("<h6>Personality</h6>"
 					+ "<p>");
 			int i=0;
 			for(PersonalityTrait trait : this.getPersonalityTraits()) {
@@ -6203,14 +6225,22 @@ public abstract class GameCharacter implements XMLSaving {
 			result.add(Relationship.HalfSibling);
 		}
 
-		if(character.getNonCommonNodes(1,0).contains(this))
-			result.add(Relationship.Pibling);
-		if(character.getNonCommonNodes(2,0).contains(this))
-			result.add(Relationship.GrandPibling);
-		if(character.getNonCommonNodes(1,1).contains(this))
+		if(!result.contains(Relationship.Parent)) { // Cannot be aunt/uncle if a parent
+			if(character.getNonCommonNodes(1,0).contains(this)) {
+				result.add(Relationship.Pibling);
+			}
+			if(character.getNonCommonNodes(2,0).contains(this)) {
+				result.add(Relationship.GrandPibling);
+			}
+		}
+		if(character.getNonCommonNodes(1,1).contains(this)) {
 			result.add(Relationship.Cousin);
-		if(character.getNonCommonNodes(0,1).contains(this))
-			result.add(Relationship.Nibling);
+		}
+		if(!result.contains(Relationship.Child)) { // Cannot be niece/nephew if a child
+			if(character.getNonCommonNodes(0,1).contains(this)) {
+				result.add(Relationship.Nibling);
+			}
+		}
 
 		result.removeAll(Arrays.asList(excludedRelationships));
 		
@@ -8763,7 +8793,7 @@ public abstract class GameCharacter implements XMLSaving {
 							partnerCummedInside = true;
 							
 						} else if(partnerPresent) {
-							if((Main.sex.getSexManager() != null && Main.sex.getSexManager().getCharacterOrgasmBehaviour(partner)==OrgasmBehaviour.CREAMPIE)
+							if((Main.sex.getSexManager() != null && (Main.sex.getSexManager().getCharacterOrgasmBehaviour(partner)==OrgasmBehaviour.CREAMPIE || Main.sex.getSexManager().getCharacterOrgasmBehaviour(partner)==OrgasmBehaviour.KNOT))
 								|| partner.getFetishDesire(Fetish.FETISH_CUM_STUD).isPositive()
 								|| (performingArea==SexAreaOrifice.VAGINA && partner.hasFetish(Fetish.FETISH_IMPREGNATION))) {
 								partnerCummedInside = true;
@@ -9273,7 +9303,7 @@ public abstract class GameCharacter implements XMLSaving {
 							thisCummedInside = true;
 							
 						} else {
-							if((Main.sex.getSexManager() != null && Main.sex.getSexManager().getCharacterOrgasmBehaviour(this)==OrgasmBehaviour.CREAMPIE)
+							if((Main.sex.getSexManager() != null && (Main.sex.getSexManager().getCharacterOrgasmBehaviour(this)==OrgasmBehaviour.CREAMPIE || Main.sex.getSexManager().getCharacterOrgasmBehaviour(this)==OrgasmBehaviour.KNOT))
 								|| this.getFetishDesire(Fetish.FETISH_CUM_STUD).isPositive()
 								|| (targetedArea==SexAreaOrifice.VAGINA && this.hasFetish(Fetish.FETISH_IMPREGNATION))) {
 								thisCummedInside = true;
@@ -10039,7 +10069,7 @@ public abstract class GameCharacter implements XMLSaving {
 
 		addSexTypeWeighting(new SexType(SexParticipantType.NORMAL, SexAreaPenetration.PENIS, SexAreaOrifice.BREAST), target, request, mainSexTypes, 1);
 		addSexTypeWeighting(new SexType(SexParticipantType.NORMAL, SexAreaPenetration.PENIS, SexAreaOrifice.NIPPLE), target, request, mainSexTypes, 1);
-		addSexTypeWeighting(new SexType(SexParticipantType.NORMAL, SexAreaPenetration.TAIL, SexAreaOrifice.BREAST), target, request, mainSexTypes, 0.5f);
+//		addSexTypeWeighting(new SexType(SexParticipantType.NORMAL, SexAreaPenetration.TAIL, SexAreaOrifice.BREAST), target, request, mainSexTypes, 0.5f);
 		addSexTypeWeighting(new SexType(SexParticipantType.NORMAL, SexAreaPenetration.TAIL, SexAreaOrifice.NIPPLE), target, request, mainSexTypes, 0.5f);
 		
 		// Self-breasts:
@@ -10055,7 +10085,7 @@ public abstract class GameCharacter implements XMLSaving {
 		addSexTypeWeighting(new SexType(SexParticipantType.NORMAL, SexAreaOrifice.BREAST, SexAreaPenetration.PENIS), target, request, mainSexTypes, 1);
 		addSexTypeWeighting(new SexType(SexParticipantType.NORMAL, SexAreaOrifice.NIPPLE, SexAreaPenetration.PENIS), target, request, mainSexTypes, 1);
 		if(selfBreastDesired) {
-			addSexTypeWeighting(new SexType(SexParticipantType.NORMAL, SexAreaOrifice.BREAST, SexAreaPenetration.TAIL), target, request, mainSexTypes, 0.5f);
+//			addSexTypeWeighting(new SexType(SexParticipantType.NORMAL, SexAreaOrifice.BREAST, SexAreaPenetration.TAIL), target, request, mainSexTypes, 0.5f);
 			addSexTypeWeighting(new SexType(SexParticipantType.NORMAL, SexAreaOrifice.NIPPLE, SexAreaPenetration.TAIL), target, request, mainSexTypes, 0.5f);
 		}
 
@@ -10069,7 +10099,7 @@ public abstract class GameCharacter implements XMLSaving {
 	
 			addSexTypeWeighting(new SexType(SexParticipantType.NORMAL, SexAreaPenetration.PENIS, SexAreaOrifice.BREAST_CROTCH), target, request, mainSexTypes, 1);
 			addSexTypeWeighting(new SexType(SexParticipantType.NORMAL, SexAreaPenetration.PENIS, SexAreaOrifice.NIPPLE_CROTCH), target, request, mainSexTypes, 1);
-			addSexTypeWeighting(new SexType(SexParticipantType.NORMAL, SexAreaPenetration.TAIL, SexAreaOrifice.BREAST_CROTCH), target, request, mainSexTypes, 0.5f);
+//			addSexTypeWeighting(new SexType(SexParticipantType.NORMAL, SexAreaPenetration.TAIL, SexAreaOrifice.BREAST_CROTCH), target, request, mainSexTypes, 0.5f);
 			addSexTypeWeighting(new SexType(SexParticipantType.NORMAL, SexAreaPenetration.TAIL, SexAreaOrifice.NIPPLE_CROTCH), target, request, mainSexTypes, 0.5f);
 		}
 		
@@ -22543,7 +22573,7 @@ public abstract class GameCharacter implements XMLSaving {
 	}
 
 	public String removedItemFromInventoryText(AbstractItemType item) {
-		return "<p style='text-align:center;'>" + "<span style='color:" + PresetColour.GENERIC_BAD.toWebHexString() + ";'>You have lost the " + item.getName(false) + ".</span>" + "</p>";
+		return "<p style='text-align:center;'>" + "<span style='color:" + PresetColour.GENERIC_BAD.toWebHexString() + ";'>You have lost '" + item.getName(false) + "'.</span>" + "</p>";
 	}
 
 	public String inventoryFullText() {
@@ -22554,9 +22584,23 @@ public abstract class GameCharacter implements XMLSaving {
 	 * First unequips all clothing into void, so that clothing effects are preserved.
 	 */
 	public void resetInventory(boolean includeWeapons){
+		resetInventory(includeWeapons, false);
+	}
+	
+	/**
+	 * First unequips all clothing into void, so that clothing effects are preserved.
+	 */
+	public void resetInventory(boolean includeWeapons, boolean preserveEssences){
+		int essences = 0;
+		if(preserveEssences) {
+			essences = this.getEssenceCount();
+		}
 		unequipAllClothingIntoVoid(true, includeWeapons);
 		
 		this.inventory = new CharacterInventory(0);
+		if(preserveEssences) {
+			this.setEssenceCount(essences);
+		}
 	}
 	
 	public void sortInventory() {
@@ -23190,7 +23234,11 @@ public abstract class GameCharacter implements XMLSaving {
 	public Map<AbstractWeapon, Integer> getAllWeaponsInInventory() {
 		return inventory.getAllWeaponsInInventory();
 	}
-
+	
+	public String addWeapon(AbstractWeapon weapon) {
+		return addWeapon(weapon, 1, false, false);
+	}
+	
 	public String addWeapon(AbstractWeapon weapon, boolean removingFromFloor) {
 		return addWeapon(weapon, 1, removingFromFloor, false);
 	}
@@ -28792,7 +28840,7 @@ public abstract class GameCharacter implements XMLSaving {
 
 	// Misc:
 	public boolean hasBreastsCrotch() {
-		return  body.getBreastCrotch().getType()!=BreastType.NONE;
+		return body.getBreastCrotch().getType()!=BreastType.NONE;
 	}
 	public boolean isBreastsCrotchVisibleThroughClothing() {
 		return body.getBreastCrotch().isVisibleThroughClothing(this);

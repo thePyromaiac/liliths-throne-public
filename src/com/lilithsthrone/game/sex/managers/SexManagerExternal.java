@@ -14,6 +14,7 @@ import org.w3c.dom.Document;
 
 import com.lilithsthrone.controller.xmlParsing.Element;
 import com.lilithsthrone.controller.xmlParsing.XMLMissingTagException;
+import com.lilithsthrone.game.PropertyValue;
 import com.lilithsthrone.game.character.GameCharacter;
 import com.lilithsthrone.game.character.body.CoverableArea;
 import com.lilithsthrone.game.character.body.valueEnums.GenitalArrangement;
@@ -344,7 +345,7 @@ public class SexManagerExternal extends SexManagerDefault {
 			endSexAffectionChangesBool = initBool(endSexAffectionChanges, true);
 			showStartingExposedDescriptionsBool = initBool(showStartingExposedDescriptions, true);
 			canSelfTransformBool = initBool(canSelfTransform, true);
-			rapePlayBannedAtStartBool = initBool(rapePlayBannedAtStart, true);
+			rapePlayBannedAtStartBool = initBool(rapePlayBannedAtStart, !Main.getProperties().hasValue(PropertyValue.rapePlayAtSexStart));
 			hiddenBool = initBool(hidden, false);
 			sadisticActionsAllowed = initBool(sadisticActionsAllowedString, true);
 			lovingActionsAllowed = initBool(lovingActionsAllowedString, true);
@@ -1210,6 +1211,18 @@ public class SexManagerExternal extends SexManagerDefault {
 				System.err.println("SetBonus was unable to be loaded from file! (" + XMLFile.getName() + ")\n" + ex);
 			}
 		}
+	}
+	
+	public boolean isTriggeringNonConWarning() {
+		for(Entry<String, CharacterBehaviour> entry : characterBehavioursWithParserIds.entrySet()) {
+			if(UtilText.findFirstCharacterFromParserTarget(entry.getKey()).isPlayer()) {
+				if(entry.getValue().sexPace!=null && !entry.getValue().sexPace.isEmpty()) {
+					SexPace parseIt = SexPace.valueOf(UtilText.parse(entry.getValue().sexPace).trim());
+					return parseIt==SexPace.SUB_RESISTING;
+				}
+			}
+		}
+		return false;
 	}
 	
 	public void initManager(AbstractSexPosition position, Map<GameCharacter, SexSlot> dominants, Map<GameCharacter, SexSlot> submissives) {

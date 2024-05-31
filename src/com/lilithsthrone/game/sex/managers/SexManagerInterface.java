@@ -186,7 +186,7 @@ public interface SexManagerInterface {
 	}
 	
 	public default boolean isRapePlayBannedAtStart(GameCharacter character) {
-		return true;
+		return !Main.getProperties().hasValue(PropertyValue.rapePlayAtSexStart);
 	}
 	
 	public default boolean isSlotAvailable(GameCharacter character, SexSlot slot) {

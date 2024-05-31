@@ -613,6 +613,12 @@ public abstract class AbstractClothing extends AbstractCoreItem implements XMLSa
 					applyTertiaryLoad = false;
 				}
 			}
+
+			String loadedId = parentElement.getAttribute("id");
+			boolean swapPrimaryAndSecondary = false;
+			if(Main.isVersionOlderThan(Game.loadingVersion, "0.4.9.13") && loadedId.equals("norin_piercings_heart_barbells")) {
+				swapPrimaryAndSecondary = true;
+			}
 			
 			Element colourElement = (Element) parentElement.getElementsByTagName("colours").item(0);
 			if(colourElement!=null) {
@@ -620,7 +626,15 @@ public abstract class AbstractClothing extends AbstractCoreItem implements XMLSa
 				for(int i=0; i<nodes.getLength(); i++) {
 					if((i!=1 || applySecondaryLoad) && (i!=2 || applyTertiaryLoad)) {
 						Element cElement = (Element) nodes.item(i);
-						clothing.setColour(Integer.valueOf(cElement.getAttribute("i")), PresetColour.getColourFromId(cElement.getTextContent()));
+						int colourIndex = Integer.valueOf(cElement.getAttribute("i"));
+						if(swapPrimaryAndSecondary) {
+							if(colourIndex==0) {
+								colourIndex = 1;
+							} else if(colourIndex==1) {
+								colourIndex = 0;
+							}
+						}
+						clothing.setColour(colourIndex, PresetColour.getColourFromId(cElement.getTextContent()));
 					}
 				}
 			}

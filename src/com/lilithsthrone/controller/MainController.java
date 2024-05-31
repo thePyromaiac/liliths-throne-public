@@ -232,25 +232,14 @@ public class MainController implements Initializable {
 			@Override
 			public void onChange() {
 				if (Main.game.getPlayer() != null) {
-					Main.game.getActiveWorld().getCell(Main.game.getPlayer().getLocation()).setDiscovered(true);
-					Main.game.getActiveWorld().getCell(Main.game.getPlayer().getLocation()).setTravelledTo(true);
-					if (Main.game.getPlayer().getLocation().getY() < Main.game.getActiveWorld().WORLD_HEIGHT - 1) {
-						Main.game.getActiveWorld().getCell(Main.game.getPlayer().getLocation().getX(), Main.game.getPlayer().getLocation().getY() + 1).setDiscovered(true);
-					}
-					if (Main.game.getPlayer().getLocation().getY() != 0) {
-						Main.game.getActiveWorld().getCell(Main.game.getPlayer().getLocation().getX(), Main.game.getPlayer().getLocation().getY() - 1).setDiscovered(true);
-					}
-					if (Main.game.getPlayer().getLocation().getX() < Main.game.getActiveWorld().WORLD_WIDTH - 1) {
-						Main.game.getActiveWorld().getCell(Main.game.getPlayer().getLocation().getX() + 1, Main.game.getPlayer().getLocation().getY()).setDiscovered(true);
-					}
-					if (Main.game.getPlayer().getLocation().getX() != 0) {
-						Main.game.getActiveWorld().getCell(Main.game.getPlayer().getLocation().getX() - 1, Main.game.getPlayer().getLocation().getY()).setDiscovered(true);
-					}
+					Main.game.getPlayer().discoverSurroundingCells();
 					
 					// Make sure that images of present characters are cached
-					for (NPC character : Main.game.getCharactersPresent())
-						if (character.hasArtwork() && Main.getProperties().hasValue(PropertyValue.artwork))
+					for (NPC character : Main.game.getCharactersPresent()) {
+						if (character.hasArtwork() && Main.getProperties().hasValue(PropertyValue.artwork)) {
 							ImageCache.INSTANCE.requestCache(character.getCurrentArtwork().getCurrentImage());
+						}
+					}
 				}
 			}
 		});
@@ -1642,6 +1631,8 @@ public class MainController implements Initializable {
 			DebugController.initSpawnItemListeners();
 		} else if (currentNode.equals(DebugDialogue.SPAWN_MENU_SET)) {
 			DebugController.initSpawnSetListeners();
+		} else if (currentNode.equals(DebugDialogue.OUTFIT_VIEWER)) {
+			DebugController.initApplyOutfitListeners();
 		} else if (currentNode.equals(ElementalDialogue.ELEMENTAL_FETISHES)
 				|| currentNode.equals(PhoneDialogue.CHARACTER_FETISHES)) {
 			MiscController.initFetishListeners();

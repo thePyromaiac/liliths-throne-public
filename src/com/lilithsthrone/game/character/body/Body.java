@@ -6377,11 +6377,17 @@ public class Body implements XMLSaving {
 		return weight;
 	}
 	
-
+	/**
+	 * @return true if this character's Height value is less than Height.ZERO_TINY. This means that a fairy-sized body will also return true for this method.
+	 */
 	public boolean isShortStature() {
-		return this.getHeightValue() < Height.getShortStatureCutOff();
+		return this.getHeight().isShortStature();
 	}
-
+	
+	public boolean isFairySized() {
+		return this.getHeight().isFairySized();
+	}
+	
 	/** Height is measured in cm. **/
 	public int getHeightValue() {
 		return height;

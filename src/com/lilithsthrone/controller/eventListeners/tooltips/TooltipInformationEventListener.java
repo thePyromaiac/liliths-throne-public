@@ -986,8 +986,8 @@ public class TooltipInformationEventListener implements EventListener {
 						}
 						
 						// PARTIAL:
-						if (owner.getHairRawLengthValue() == 0 && owner.isFaceBaldnessNatural()) {
-							tooltipSB.append(getEmptyBodyPartDiv("Hair", "None"));
+						if (owner.getHairRawLengthValue() == 0) {
+							tooltipSB.append(getEmptyBodyPartDiv("Hair", owner.isFaceBaldnessNatural()?"None":"Bald"));
 						} else {
 							tooltipSB.append(getBodyPartDiv(owner,
 									Util.capitaliseSentence(owner.getHairLength().getDescriptor())+" "+owner.getHairStyle().getName(owner)+" "+owner.getHairName(), owner.getHairRace(), owner.getHairCovering(), owner.isHairFeral()));

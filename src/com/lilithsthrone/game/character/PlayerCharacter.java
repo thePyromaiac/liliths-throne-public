@@ -763,7 +763,7 @@ public class PlayerCharacter extends GameCharacter implements XMLSaving {
 	}
 
 	@Override
-	protected void updateLocationListeners() {
+	public void updateLocationListeners() {
 		if (playerLocationChangeEventListeners != null)
 			for (CharacterChangeEventListener eventListener : playerLocationChangeEventListeners)
 				eventListener.onChange();
@@ -846,6 +846,23 @@ public class PlayerCharacter extends GameCharacter implements XMLSaving {
 			
 		} else {
 			super.setLocation(worldLocation, location, setAsHomeLocation);
+		}
+	}
+	
+	public void discoverSurroundingCells() {
+		Main.game.getActiveWorld().getCell(Main.game.getPlayer().getLocation()).setDiscovered(true);
+		Main.game.getActiveWorld().getCell(Main.game.getPlayer().getLocation()).setTravelledTo(true);
+		if (Main.game.getPlayer().getLocation().getY() < Main.game.getActiveWorld().WORLD_HEIGHT - 1) {
+			Main.game.getActiveWorld().getCell(Main.game.getPlayer().getLocation().getX(), Main.game.getPlayer().getLocation().getY() + 1).setDiscovered(true);
+		}
+		if (Main.game.getPlayer().getLocation().getY() != 0) {
+			Main.game.getActiveWorld().getCell(Main.game.getPlayer().getLocation().getX(), Main.game.getPlayer().getLocation().getY() - 1).setDiscovered(true);
+		}
+		if (Main.game.getPlayer().getLocation().getX() < Main.game.getActiveWorld().WORLD_WIDTH - 1) {
+			Main.game.getActiveWorld().getCell(Main.game.getPlayer().getLocation().getX() + 1, Main.game.getPlayer().getLocation().getY()).setDiscovered(true);
+		}
+		if (Main.game.getPlayer().getLocation().getX() != 0) {
+			Main.game.getActiveWorld().getCell(Main.game.getPlayer().getLocation().getX() - 1, Main.game.getPlayer().getLocation().getY()).setDiscovered(true);
 		}
 	}
 	

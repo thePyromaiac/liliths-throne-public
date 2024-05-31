@@ -394,13 +394,13 @@ public class Sex {
 		creampieLockedBy = null;
 		
 		charactersBannedFromRapePlay = new HashSet<>();
-		if(!Main.getProperties().hasValue(PropertyValue.rapePlayAtSexStart)) {
-			for(GameCharacter character : sexManager.getSubmissives().keySet()) { // All characters start banned from rape-play, as otherwise it's very jarring to start consensual sex and the partner is immediately resisting with no explanation
-				if(sexManager.isRapePlayBannedAtStart(character)) {
-					charactersBannedFromRapePlay.add(character);
-				}
+//		if(!Main.getProperties().hasValue(PropertyValue.rapePlayAtSexStart)) {
+		for(GameCharacter character : sexManager.getSubmissives().keySet()) { // All characters start banned from rape-play, as otherwise it's very jarring to start consensual sex and the partner is immediately resisting with no explanation
+			if(sexManager.isRapePlayBannedAtStart(character)) {
+				charactersBannedFromRapePlay.add(character);
 			}
 		}
+//		}
 
 		charactersImmobilised = new HashMap<>(sexManager.getStartingCharactersImmobilised());
 		
@@ -1953,7 +1953,7 @@ public class Sex {
 
 		@Override
 		public boolean isContinuesDialogue(){
-			return sexStarted;
+			return sexStarted && turn>1;
 		}
 		
 		@Override
@@ -5355,6 +5355,9 @@ public class Sex {
 		} else {
 			for(GameCharacter character : this.getAllParticipants(true)) {
 				for(GameCharacter interactingCharacter : this.getAllParticipants(true)) {
+					if(dominantSpectators.contains(character) || submissiveSpectators.contains(character)) {
+						stopAllOngoingActions(character, interactingCharacter);
+					}
 					if(sexManager.getDominants().containsKey(character)) {
 						if(this.getSexPositionSlot(character)!=sexManager.getDominants().get(character)) {
 							stopAllOngoingActions(character, interactingCharacter);

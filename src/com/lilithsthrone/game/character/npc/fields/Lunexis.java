@@ -99,7 +99,7 @@ public class Lunexis extends NPC {
 	}
 	
 	public Lunexis(boolean isImported) {
-		super(isImported, new NameTriplet("Lunexis"), "Lunettemartu",
+		super(isImported, new NameTriplet("Lunexis"), "Lunettemartuilani",
 				"One of Lunette's recognised daughters, Lunexis is particularly strong, dominant, and brutal."
 						+ " Delighting in destruction, chaos, and mayhem, she is used by her elder lilin mother as a living weapon, who tasks her with destroying towns and villages which have displeased her.",
 				517, Month.JANUARY, 15,
@@ -124,11 +124,12 @@ public class Lunexis extends NPC {
 		if(Main.isVersionOlderThan(Game.loadingVersion, "0.4.9.8")) {
 			this.setAge(517);
 		}
-		if(Main.isVersionOlderThan(Game.loadingVersion, "0.4.9.11")) {
+		if(Main.isVersionOlderThan(Game.loadingVersion, "0.4.9.13")) {
 			this.setBreastRows(2);
 			this.setPiercedPenis(true);
 			this.equipClothingFromNowhere(Main.game.getItemGen().generateClothing("innoxia_piercing_penis_ring", PresetColour.CLOTHING_GOLD, false), true, this);
 			this.equipClothingFromNowhere(Main.game.getItemGen().generateClothing("innoxia_wrist_thin_bangles", PresetColour.CLOTHING_GOLD, false), InventorySlot.TAIL, true, this);
+			this.setSurname("Lunettemartuilani");
 		}
 	}
 

@@ -10026,6 +10026,9 @@ public class UtilText {
 		for(EyeShape eyeShape : EyeShape.values()) {
 			engine.put("EYE_SHAPE_"+eyeShape.toString(), eyeShape);
 		}
+		for(OrificeDepth orificeDepth : OrificeDepth.values()) {
+			engine.put("ORIFICE_DEPTH_"+orificeDepth.toString(), orificeDepth);
+		}
 		// Types:
 		for(AbstractFluidType fluidType : FluidType.getAllFluidTypes()) {
 			engine.put("FLUID_TYPE_"+FluidType.getIdFromFluidType(fluidType), fluidType);
